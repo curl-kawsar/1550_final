@@ -10,16 +10,27 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('admin-token')?.value;
+    let token = cookieStore.get('admin-token')?.value;
+    
+    // Fallback: Check Authorization header if no cookie
+    if (!token && request) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+        console.log('Using Authorization header token for /me');
+      }
+    }
     
     console.log('Admin me request - Token exists:', !!token);
     console.log('JWT_SECRET configured:', !!JWT_SECRET);
+    console.log('All cookies:', Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value ? 'exists' : 'empty'])));
     
     if (!token) {
       console.log('No admin token found in cookies for /me endpoint');
+      console.log('Available cookie names:', cookieStore.getAll().map(c => c.name));
       return NextResponse.json(
         { error: 'No token provided' },
         { status: 401 }

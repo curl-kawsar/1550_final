@@ -1,6 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+// Helper function to get admin auth headers
+const getAdminHeaders = () => {
+  const token = localStorage.getItem('adminToken')
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  }
+}
+
 // Admin Students Queries
 export const useStudents = (page = 1, limit = 10, filters = {}) => {
   return useQuery({
@@ -14,7 +23,9 @@ export const useStudents = (page = 1, limit = 10, filters = {}) => {
       if (filters.search) params.append('search', filters.search)
       if (filters.status) params.append('status', filters.status)
       
-      const response = await fetch(`/api/students?${params}`)
+      const response = await fetch(`/api/students?${params}`, {
+        headers: getAdminHeaders()
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch students')
       }
@@ -28,7 +39,9 @@ export const useStudent = (id) => {
   return useQuery({
     queryKey: ['student', id],
     queryFn: async () => {
-      const response = await fetch(`/api/students/${id}`)
+      const response = await fetch(`/api/students/${id}`, {
+        headers: getAdminHeaders()
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch student')
       }
@@ -45,9 +58,7 @@ export const useUpdateStudentStatus = () => {
     mutationFn: async ({ id, status }) => {
       const response = await fetch(`/api/students/${id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ status })
       })
       
@@ -74,7 +85,8 @@ export const useDeleteStudent = () => {
   return useMutation({
     mutationFn: async (id) => {
       const response = await fetch(`/api/students/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAdminHeaders()
       })
       
       if (!response.ok) {
@@ -99,7 +111,9 @@ export const useDashboardStats = () => {
   return useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/stats')
+      const response = await fetch('/api/dashboard/stats', {
+        headers: getAdminHeaders()
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard stats')
       }
@@ -107,5 +121,23 @@ export const useDashboardStats = () => {
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  })
+}
+
+// Admin Authentication Check
+export const useAdminAuth = () => {
+  return useQuery({
+    queryKey: ['admin-auth'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/auth/me', {
+        headers: getAdminHeaders()
+      })
+      if (!response.ok) {
+        throw new Error('Not authenticated')
+      }
+      return response.json()
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false
   })
 }

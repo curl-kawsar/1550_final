@@ -12,17 +12,28 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
-    // Check authentication
+    // Check authentication - Cookie first, then Authorization header
     const cookieStore = await cookies();
-    const token = cookieStore.get('admin-token')?.value;
+    let token = cookieStore.get('admin-token')?.value;
+    
+    // Fallback: Check Authorization header if no cookie
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+        console.log('Using Authorization header token');
+      }
+    }
     
     console.log('Dashboard stats request - Token exists:', !!token);
     console.log('JWT_SECRET configured:', !!JWT_SECRET);
+    console.log('All cookies:', Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value ? 'exists' : 'empty'])));
     
     if (!token) {
       console.log('No admin token found in cookies');
+      console.log('Available cookie names:', cookieStore.getAll().map(c => c.name));
       return NextResponse.json(
         { error: 'Invalid or expired token' },
         { status: 401 }
