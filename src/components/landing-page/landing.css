@@ -1,0 +1,59 @@
+.hero-image {
+  background-image: url('/header.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  min-height: 80vh;
+  width: 100%;
+  position: relative;
+}
+
+h2,
+ul,
+li {
+  font-family: 'Norwester', sans-serif;
+}
+
+/* Mobile optimizations */
+@media only screen and (max-width: 640px) {
+  .hero-image {
+    background-position: center center;
+    min-height: 70vh;
+  }
+  .hero-image::after {
+    position: absolute;
+    content: '';
+    inset: 0;
+    background-color: rgba(20, 28, 66, 0.7);
+    z-index: 1;
+  }
+}
+
+/* Tablet optimizations */
+@media only screen and (min-width: 641px) and (max-width: 1024px) {
+  .hero-image {
+    background-position: center right;
+    min-height: 75vh;
+  }
+}
+
+/* Desktop optimizations */
+@media only screen and (min-width: 1025px) {
+  .hero-image {
+    background-position: top right;
+    min-height: 85vh;
+  }
+}
+
+/* Large desktop optimizations */
+@media only screen and (min-width: 1920px) {
+  .hero-image {
+    min-height: 90vh;
+  }
+}
+
+/* Ensure content is above overlay */
+.hero-image > * {
+  position: relative;
+  z-index: 10;
+}
