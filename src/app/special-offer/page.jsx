@@ -13,6 +13,10 @@ const SpecialOfferContent = () => {
         minutes: 30,
         seconds: 50
     });
+    const [couponCode, setCouponCode] = useState('');
+    const [couponApplied, setCouponApplied] = useState(null);
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [originalPrice] = useState(99);
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -53,6 +57,50 @@ const SpecialOfferContent = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            toast.error('Please enter a coupon code');
+            return;
+        }
+
+        setCouponLoading(true);
+        try {
+            const response = await fetch('/api/coupons/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: couponCode.trim(),
+                    planType: 'all', // Allow coupon for all plan types
+                    amount: originalPrice
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                setCouponApplied(data);
+                toast.success(`Coupon applied! ${data.discount.discountPercentage}% discount`);
+            } else {
+                toast.error(data.error || 'Invalid coupon code');
+                setCouponApplied(null);
+            }
+        } catch (error) {
+            console.error('Error applying coupon:', error);
+            toast.error('Failed to apply coupon');
+            setCouponApplied(null);
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setCouponCode('');
+        setCouponApplied(null);
+        toast.info('Coupon removed');
+    };
+
     const handlePurchase = async (planType = 'recordings_only') => {
         setLoading(true);
         try {
@@ -70,7 +118,8 @@ const SpecialOfferContent = () => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    planType
+                    planType,
+                    ...(couponApplied && { couponCode: couponApplied.coupon.code })
                 })
             });
 
@@ -80,7 +129,16 @@ const SpecialOfferContent = () => {
                 throw new Error(data.error || 'Failed to create checkout session');
             }
 
-            // Redirect to Stripe Checkout
+            // Handle free purchase (100% discount)
+            if (data.isFree) {
+                toast.success(data.message);
+                setTimeout(() => {
+                    window.location.href = data.redirectUrl;
+                }, 2000);
+                return;
+            }
+
+            // Redirect to Stripe Checkout for paid purchases
             window.location.href = data.url;
 
         } catch (error) {
@@ -150,6 +208,105 @@ const SpecialOfferContent = () => {
                 </div>
             </div>
 
+            {/* Coupon Section */}
+            <div className="py-8 px-4">
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+                        <h3 className="text-xl font-bold text-black mb-4 text-center">
+                            Have a coupon code?
+                        </h3>
+                        
+                        {!couponApplied ? (
+                            <div className="space-y-4">
+                                <div className="flex gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter coupon code"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        disabled={couponLoading}
+                                    />
+                                    <button
+                                        onClick={handleApplyCoupon}
+                                        disabled={couponLoading || !couponCode.trim()}
+                                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-300 flex items-center gap-2"
+                                    >
+                                        {couponLoading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Applying...
+                                            </>
+                                        ) : (
+                                            'Apply'
+                                        )}
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-600 text-center">
+                                    Enter your coupon code to get a discount on your purchase
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="font-semibold text-green-800">
+                                                Coupon Applied! 🎉
+                                            </h4>
+                                            <p className="text-green-700">
+                                                <strong>{couponApplied.coupon.code}</strong> - {couponApplied.discount.discountPercentage}% off
+                                            </p>
+                                            {couponApplied.coupon.description && (
+                                                <p className="text-sm text-green-600 mt-1">
+                                                    {couponApplied.coupon.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={handleRemoveCoupon}
+                                            className="text-red-600 hover:text-red-800 font-medium text-sm"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h4 className="font-semibold text-blue-800 mb-2">Discount Summary</h4>
+                                    <div className="space-y-1 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Original Price:</span>
+                                            <span className="font-medium">${couponApplied.discount.originalAmount}</span>
+                                        </div>
+                                        <div className="flex justify-between text-green-600">
+                                            <span>Discount ({couponApplied.discount.discountPercentage}%):</span>
+                                            <span className="font-medium">-${couponApplied.discount.discountAmount}</span>
+                                        </div>
+                                        <div className="border-t pt-1 mt-2">
+                                            <div className="flex justify-between text-lg font-bold">
+                                                <span className="text-blue-800">Final Price:</span>
+                                                <span className="text-blue-800">
+                                                    {couponApplied.discount.isFree ? 'FREE!' : `$${couponApplied.discount.finalAmount}`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {couponApplied.discount.isFree && (
+                                        <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-center">
+                                            <span className="text-yellow-800 font-medium">
+                                                🎉 This coupon gives you FREE ACCESS! 🎉
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Pricing Plans Section */}
             <div id="pricing" className="py-16 px-4">
                 <div className="max-w-6xl mx-auto">
@@ -173,7 +330,22 @@ const SpecialOfferContent = () => {
                                 <img src="/camera.png" alt="Camera" className="w-16 h-16" />
                             </div>
                             <div className="text-4xl font-bold text-blue-500 mb-4">
-                                $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                {couponApplied ? (
+                                    <>
+                                        {couponApplied.discount.isFree ? (
+                                            <span className="text-green-600">FREE!</span>
+                                        ) : (
+                                            <>
+                                                ${couponApplied.discount.finalAmount}
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                            </>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                    </>
+                                )}
                             </div>
                             <div className="text-sm text-gray-500 mb-2">(processing fee will apply)</div>
                             <h3 className="text-xl font-bold text-black mb-6">
@@ -202,7 +374,22 @@ const SpecialOfferContent = () => {
                                 <img src="/time.png" alt="Time" className="w-16 h-16" />
                             </div>
                             <div className="text-4xl font-bold text-blue-500 mb-4">
-                                $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                {couponApplied ? (
+                                    <>
+                                        {couponApplied.discount.isFree ? (
+                                            <span className="text-green-600">FREE!</span>
+                                        ) : (
+                                            <>
+                                                ${couponApplied.discount.finalAmount}
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                            </>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                    </>
+                                )}
                             </div>
                             <div className="text-sm text-gray-500 mb-2">(processing fee will apply)</div>
                             <h3 className="text-xl font-bold text-black mb-2">
@@ -237,7 +424,22 @@ const SpecialOfferContent = () => {
                                 <img src="/time.png" alt="Time" className="w-12 h-12" />
                             </div>
                             <div className="text-4xl font-bold text-blue-500 mb-4">
-                                $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                {couponApplied ? (
+                                    <>
+                                        {couponApplied.discount.isFree ? (
+                                            <span className="text-green-600">FREE!</span>
+                                        ) : (
+                                            <>
+                                                ${couponApplied.discount.finalAmount}
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                            </>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                    </>
+                                )}
                             </div>
                             <div className="text-sm text-gray-500 mb-2">(processing fee will apply)</div>
                             <h3 className="text-xl font-bold text-black mb-2">

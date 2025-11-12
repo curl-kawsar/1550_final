@@ -18,6 +18,8 @@ import AssignmentResults from '@/components/admin/AssignmentResults'
 import ClassTimeManagement from '@/components/admin/ClassTimeManagement'
 import ClassroomManagement from '@/components/admin/ClassroomManagement'
 import SalesReport from '@/components/admin/SalesReport'
+import CouponManagement from '@/components/admin/CouponManagement'
+import CouponUsageHistory from '@/components/admin/CouponUsageHistory'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -97,6 +99,18 @@ export default function AdminDashboard() {
         {activeTab === 'sales' && (
           <div>
             <SalesReport />
+          </div>
+        )}
+
+        {activeTab === 'coupons' && (
+          <div>
+            <CouponManagement />
+          </div>
+        )}
+
+        {activeTab === 'coupon-usage' && (
+          <div>
+            <CouponUsageHistory />
           </div>
         )}
 

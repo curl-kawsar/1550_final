@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import connectToDatabase from '@/lib/mongodb';
 import Student from '@/models/Student';
+import Coupon from '@/models/Coupon';
+import CouponUsage from '@/models/CouponUsage';
 import { verifyStudentToken } from '@/lib/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -18,7 +20,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { planType } = body;
+    const { planType, couponCode } = body;
 
     await connectToDatabase();
 
@@ -86,41 +88,126 @@ export async function POST(request) {
         break;
     }
 
-    // Calculate 2.9% processing fee
-    const processingFee = Math.round(baseAmount * 0.029); // 2.9% fee in cents
-    const totalAmount = baseAmount + processingFee;
+    // Handle coupon validation and discount calculation
+    let validCoupon = null;
+    let discountAmount = 0;
+    let finalAmount = baseAmount;
+    
+    if (couponCode) {
+      // Find and validate coupon
+      validCoupon = await Coupon.findValidCoupon(couponCode, planType, baseAmount / 100); // Convert to dollars
+      
+      if (!validCoupon) {
+        return NextResponse.json(
+          { error: 'Invalid or expired coupon code' },
+          { status: 400 }
+        );
+      }
+      
+      // Calculate discount
+      discountAmount = validCoupon.calculateDiscount(baseAmount / 100) * 100; // Convert back to cents
+      finalAmount = Math.max(0, baseAmount - discountAmount);
+      
+      console.log('Coupon applied:', {
+        code: validCoupon.code,
+        discount: validCoupon.discountPercentage + '%',
+        originalAmount: baseAmount / 100,
+        discountAmount: discountAmount / 100,
+        finalAmount: finalAmount / 100
+      });
+    }
+
+    // Check if this is a 100% discount (free purchase)
+    if (finalAmount === 0) {
+      // Handle free purchase immediately without Stripe
+      await Student.findByIdAndUpdate(student._id, {
+        hasPaidSpecialOffer: true,
+        paymentStatus: 'succeeded',
+        paymentAmount: 0,
+        paymentDate: new Date()
+      });
+      
+      // Record coupon usage
+      if (validCoupon) {
+        const couponUsage = new CouponUsage({
+          coupon: validCoupon._id,
+          student: student._id,
+          couponCode: validCoupon.code,
+          planType,
+          originalAmount: baseAmount / 100,
+          discountAmount: discountAmount / 100,
+          finalAmount: 0,
+          discountPercentage: validCoupon.discountPercentage,
+          paymentStatus: 'free',
+          usedAt: new Date()
+        });
+        
+        await Promise.all([
+          couponUsage.save(),
+          validCoupon.incrementUsage()
+        ]);
+      }
+      
+      // Return success URL for free purchase
+      return NextResponse.json({
+        success: true,
+        message: 'Course unlocked! Enjoy your free access.',
+        redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.1550plus.com'}/student-dashboard?payment=success&tab=classroom`,
+        isFree: true
+      });
+    }
+
+    // Calculate 2.9% processing fee on the discounted amount
+    const processingFee = Math.round(finalAmount * 0.029); // 2.9% fee in cents
+    const totalAmount = finalAmount + processingFee;
+
+    // Build line items for Stripe checkout
+    const lineItems = [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            ...productData,
+            description: validCoupon 
+              ? `${productData.description} (${validCoupon.discountPercentage}% discount applied)`
+              : productData.description
+          },
+          unit_amount: finalAmount,
+        },
+        quantity: 1,
+      },
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Processing Fee',
+            description: '2.9% payment processing fee',
+          },
+          unit_amount: processingFee,
+        },
+        quantity: 1,
+      }
+    ];
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: productData,
-            unit_amount: baseAmount,
-          },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Processing Fee',
-              description: '2.9% payment processing fee',
-            },
-            unit_amount: processingFee,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.1550plus.com'}/student-dashboard?payment=success&tab=classroom`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.1550plus.com'}/special-offer?payment=cancelled`,
       metadata: {
         studentId: student._id.toString(),
-        type: 'special_offer'
+        type: 'special_offer',
+        planType,
+        ...(validCoupon && {
+          couponId: validCoupon._id.toString(),
+          couponCode: validCoupon.code,
+          originalAmount: (baseAmount / 100).toString(),
+          discountAmount: (discountAmount / 100).toString(),
+          discountPercentage: validCoupon.discountPercentage.toString()
+        })
       },
       customer_update: {
         address: 'auto',
@@ -130,7 +217,15 @@ export async function POST(request) {
       payment_intent_data: {
         metadata: {
           studentId: student._id.toString(),
-          type: 'special_offer'
+          type: 'special_offer',
+          planType,
+          ...(validCoupon && {
+            couponId: validCoupon._id.toString(),
+            couponCode: validCoupon.code,
+            originalAmount: (baseAmount / 100).toString(),
+            discountAmount: (discountAmount / 100).toString(),
+            discountPercentage: validCoupon.discountPercentage.toString()
+          })
         }
       }
     });
@@ -141,9 +236,39 @@ export async function POST(request) {
       paymentStatus: 'processing'
     });
 
+    // Record pending coupon usage for non-free purchases
+    if (validCoupon) {
+      const couponUsage = new CouponUsage({
+        coupon: validCoupon._id,
+        student: student._id,
+        couponCode: validCoupon.code,
+        planType,
+        originalAmount: baseAmount / 100,
+        discountAmount: discountAmount / 100,
+        finalAmount: finalAmount / 100,
+        discountPercentage: validCoupon.discountPercentage,
+        paymentStatus: 'pending',
+        stripePaymentIntentId: session.payment_intent,
+        stripeSessionId: session.id,
+        usedAt: new Date()
+      });
+      
+      await Promise.all([
+        couponUsage.save(),
+        validCoupon.incrementUsage()
+      ]);
+    }
+
     return NextResponse.json({
       sessionId: session.id,
-      url: session.url
+      url: session.url,
+      couponApplied: validCoupon ? {
+        code: validCoupon.code,
+        discountPercentage: validCoupon.discountPercentage,
+        originalAmount: baseAmount / 100,
+        discountAmount: discountAmount / 100,
+        finalAmount: finalAmount / 100
+      } : null
     });
 
   } catch (error) {

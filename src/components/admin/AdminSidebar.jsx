@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign } from "lucide-react"
+import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign, Percent, Receipt } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -10,11 +10,24 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
   const [assignmentsDropdownOpen, setAssignmentsDropdownOpen] = useState(
     activeTab === 'assignments' || activeTab === 'assignment-results'
   )
+  const [couponsDropdownOpen, setCouponsDropdownOpen] = useState(
+    activeTab === 'coupons' || activeTab === 'coupon-usage'
+  )
 
   const navigation = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'students', label: 'Students', icon: Users },
     { id: 'sales', label: 'Sales Report', icon: DollarSign },
+    { 
+      id: 'coupons', 
+      label: 'Coupons', 
+      icon: Percent,
+      hasDropdown: true,
+      subItems: [
+        { id: 'coupons', label: 'Coupon Management', icon: Percent },
+        { id: 'coupon-usage', label: 'Usage History', icon: Receipt }
+      ]
+    },
     { 
       id: 'assignments', 
       label: 'Assignments', 
@@ -68,10 +81,19 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
     if (tabId === 'assignments' || tabId === 'assignment-results') {
       setAssignmentsDropdownOpen(true)
     }
+    
+    // Keep coupons dropdown open if a coupon-related tab is selected
+    if (tabId === 'coupons' || tabId === 'coupon-usage') {
+      setCouponsDropdownOpen(true)
+    }
   }
 
-  const handleDropdownToggle = () => {
+  const handleAssignmentsDropdownToggle = () => {
     setAssignmentsDropdownOpen(!assignmentsDropdownOpen)
+  }
+
+  const handleCouponsDropdownToggle = () => {
+    setCouponsDropdownOpen(!couponsDropdownOpen)
   }
 
   return (
@@ -136,6 +158,11 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
             const isActive = activeTab === item.id || (item.subItems && item.subItems.some(sub => sub.id === activeTab))
             
             if (item.hasDropdown) {
+              const isDropdownOpen = item.id === 'assignments' ? assignmentsDropdownOpen : 
+                                   item.id === 'coupons' ? couponsDropdownOpen : false
+              const handleDropdownToggle = item.id === 'assignments' ? handleAssignmentsDropdownToggle : 
+                                         item.id === 'coupons' ? handleCouponsDropdownToggle : () => {}
+              
               return (
                 <div key={item.id}>
                   {/* Main dropdown button */}
@@ -153,7 +180,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
                       <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                       {item.label}
                     </div>
-                    {assignmentsDropdownOpen ? (
+                    {isDropdownOpen ? (
                       <ChevronDown className="w-4 h-4" />
                     ) : (
                       <ChevronRight className="w-4 h-4" />
@@ -161,7 +188,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
                   </button>
                   
                   {/* Dropdown items */}
-                  {assignmentsDropdownOpen && (
+                  {isDropdownOpen && (
                     <div className="ml-8 mt-2 space-y-1">
                       {item.subItems.map((subItem) => {
                         const SubIcon = subItem.icon

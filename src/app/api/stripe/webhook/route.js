@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import connectToDatabase from '@/lib/mongodb';
 import Student from '@/models/Student';
+import CouponUsage from '@/models/CouponUsage';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -83,6 +84,20 @@ async function handleCheckoutSessionCompleted(session) {
     
     const updatedStudent = await Student.findByIdAndUpdate(studentId, updateData, { new: true });
     
+    // Update coupon usage status if applicable
+    if (session.metadata?.couponId) {
+      await CouponUsage.findOneAndUpdate(
+        { 
+          stripeSessionId: session.id,
+          paymentStatus: 'pending' 
+        },
+        { 
+          paymentStatus: 'paid' 
+        }
+      );
+      console.log(`Updated coupon usage status to 'paid' for session: ${session.id}`);
+    }
+    
     console.log(`Payment completed for student: ${studentId}`, updatedStudent?.hasPaidSpecialOffer);
     
   } catch (error) {
@@ -108,6 +123,20 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
 
     await Student.findByIdAndUpdate(studentId, updateData);
     
+    // Update coupon usage status if applicable
+    if (paymentIntent.metadata?.couponId) {
+      await CouponUsage.findOneAndUpdate(
+        { 
+          stripePaymentIntentId: paymentIntent.id,
+          paymentStatus: 'pending' 
+        },
+        { 
+          paymentStatus: 'paid' 
+        }
+      );
+      console.log(`Updated coupon usage status to 'paid' for payment intent: ${paymentIntent.id}`);
+    }
+    
     console.log(`Payment intent succeeded for student: ${studentId}`);
     
   } catch (error) {
@@ -128,6 +157,20 @@ async function handlePaymentIntentFailed(paymentIntent) {
     };
 
     await Student.findByIdAndUpdate(studentId, updateData);
+    
+    // Update coupon usage status if applicable
+    if (paymentIntent.metadata?.couponId) {
+      await CouponUsage.findOneAndUpdate(
+        { 
+          stripePaymentIntentId: paymentIntent.id,
+          paymentStatus: 'pending' 
+        },
+        { 
+          paymentStatus: 'failed' 
+        }
+      );
+      console.log(`Updated coupon usage status to 'failed' for payment intent: ${paymentIntent.id}`);
+    }
     
     console.log(`Payment intent failed for student: ${studentId}`);
     
