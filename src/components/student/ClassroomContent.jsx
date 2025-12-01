@@ -184,79 +184,83 @@ const ClassroomContent = forwardRef((props, ref) => {
   if (!hasAccess && classStructures.some(cs => cs.requiresPayment)) {
     return (
       <div className="space-y-6">
-        {/* Access Denied Section */}
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Lock className="w-8 h-8 text-orange-600" />
-              <CardTitle className="text-2xl text-orange-800">Premium Content Locked</CardTitle>
-            </div>
-            <p className="text-orange-700">
-              Unlock exclusive SAT preparation content by purchasing our special offer!
+        {/* Simple Purchase Section */}
+        <Card className="text-center">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              SAT 1550+ Course
+            </CardTitle>
+            <p className="text-gray-600">
+              Unlock complete access to SAT preparation materials
             </p>
           </CardHeader>
-          <CardContent className="text-center space-y-6">
+          <CardContent className="space-y-6">
+            {/* Simple Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border border-orange-200">
+              <div className="p-4 border rounded-lg">
                 <Target className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <h4 className="font-semibold text-gray-800">Expert Strategies</h4>
-                <p className="text-sm text-gray-600">Proven techniques to boost your SAT score</p>
+                <h4 className="font-semibold">Expert Strategies</h4>
+                <p className="text-sm text-gray-600">Proven SAT techniques</p>
               </div>
-              <div className="bg-white p-4 rounded-lg border border-orange-200">
+              <div className="p-4 border rounded-lg">
                 <Play className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <h4 className="font-semibold text-gray-800">Video Lessons</h4>
-                <p className="text-sm text-gray-600">Step-by-step video tutorials</p>
+                <h4 className="font-semibold">Video Lessons</h4>
+                <p className="text-sm text-gray-600">Step-by-step tutorials</p>
               </div>
-              <div className="bg-white p-4 rounded-lg border border-orange-200">
+              <div className="p-4 border rounded-lg">
                 <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                <h4 className="font-semibold text-gray-800">1550+ Roadmap</h4>
-                <p className="text-sm text-gray-600">Your path to scoring 1550+</p>
+                <h4 className="font-semibold">1550+ Roadmap</h4>
+                <p className="text-sm text-gray-600">Your path to success</p>
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-2">Special Limited Time Offer!</h3>
-              <p className="text-lg mb-4">Get complete access for just <strong>$497</strong> (84% OFF)</p>
-              <div className="space-y-3">
-                <Link href="/special-offer">
-                  <Button className="bg-white text-blue-600 hover:bg-gray-100 font-bold px-8 py-3 w-full">
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Purchase Now - $497
-                  </Button>
-                </Link>
-                
-                {/* Manual completion button for testing (when payment=success is in URL) */}
-                {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('payment') === 'success' && (
-                  <Button 
-                    onClick={attemptManualCompletion}
-                    className="bg-yellow-500 text-white hover:bg-yellow-600 font-bold px-8 py-3 w-full"
-                  >
-                    🔄 Unlock Content (If Payment Completed)
-                  </Button>
-                )}
+            {/* Simple Pricing */}
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <span className="text-2xl text-gray-400 line-through">$297</span>
+                <span className="text-4xl font-bold text-blue-600">$99</span>
               </div>
+              
+              <Link href="/special-offer">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 text-lg rounded-lg">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Purchase Now - $99
+                </Button>
+              </Link>
+              
+              {/* Manual completion button for testing */}
+              {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('payment') === 'success' && (
+                <Button 
+                  onClick={attemptManualCompletion}
+                  className="bg-yellow-500 text-white hover:bg-yellow-600 font-bold px-8 py-3 w-full mt-3"
+                >
+                  🔄 Unlock Content (If Payment Completed)
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Preview Content */}
-        {classStructures.map((structure) => (
+        {/* Simple Course Preview */}
+        {classStructures.map((structure, index) => (
           <Card key={structure._id} className="opacity-75">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-gray-400" />
+                  <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                    {index + 1}
+                  </span>
                   {structure.title}
                 </CardTitle>
-                <Badge variant="outline" className="border-orange-300 text-orange-600">
-                  Premium Content
+                <Badge variant="outline" className="text-blue-600">
+                  Premium
                 </Badge>
               </div>
+              <p className="text-gray-600">{structure.overview}</p>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">{structure.overview}</p>
-              <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <Lock className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <div className="bg-gray-100 p-6 rounded-lg text-center">
+                <Lock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <p className="text-gray-500">Content available after purchase</p>
               </div>
             </CardContent>
@@ -406,3 +410,4 @@ const ClassroomContent = forwardRef((props, ref) => {
 ClassroomContent.displayName = 'ClassroomContent';
 
 export default ClassroomContent;
+
