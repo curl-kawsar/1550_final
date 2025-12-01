@@ -871,71 +871,46 @@ const InteractiveRegistrationForm = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {diagnosticTests.length > 0 ? (
-                      diagnosticTests.map((test) => (
-                        <label key={test.name} className="flex items-start p-4 border border-[#457BF5] rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                          <input
-                            type="radio"
-                            name="diagnosticTestDate"
-                            value={test.name}
-                            checked={formData.diagnosticTestDate === test.name}
-                            onChange={(e) => handleInputChange('diagnosticTestDate', e.target.value)}
-                            className="mr-3 mt-1 text-blue-600"
-                            disabled={!test.canRegister}
-                          />
-                          <div className={`flex-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-600 font-medium' : ''}`}>
-                            <div className="font-semibold">
-                              {test.formattedDate || new Date(test.date).toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </div>
-                            <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
-                              Test time: {formatTime(test.startTime)} - {formatTime(test.endTime)} {test.timezone}
-                            </div>
-                            {test.location && test.location !== 'Online' && (
-                              <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
-                                Location: {test.location}
-                              </div>
-                            )}
-                            {test.currentEnrollment !== undefined && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {test.currentEnrollment}/{test.capacity} students registered
-                              </div>
-                            )}
-                            {test.isFull && (
-                              <div className="text-xs text-red-600 mt-1 font-medium">
-                                ⚠️ This test is full
-                              </div>
-                            )}
+                    {diagnosticTests.map((test) => (
+                      <label key={test.name} className="flex items-start p-4 border border-[#457BF5] rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                        <input
+                          type="radio"
+                          name="diagnosticTestDate"
+                          value={test.name}
+                          checked={formData.diagnosticTestDate === test.name}
+                          onChange={(e) => handleInputChange('diagnosticTestDate', e.target.value)}
+                          className="mr-3 mt-1 text-blue-600"
+                          disabled={!test.canRegister}
+                        />
+                        <div className={`flex-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-600 font-medium' : ''}`}>
+                          <div className="font-semibold">
+                            {test.formattedDate || new Date(test.date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
                           </div>
-                        </label>
-                      ))
-                    ) : (
-                      <>
-                        {/* Fallback to legacy options if no dynamic tests available */}
-                        {[
-                          "Saturday September 27th 8:30am - noon PST",
-                          "Sunday September 28th 8:30am - noon PST",
-                          "I can't make either of these dates (reply below with if neither option works for you)"
-                        ].map((option) => (
-                          <label key={option} className="flex items-start p-4 border border-[#457BF5] rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                            <input
-                              type="radio"
-                              name="diagnosticTestDate"
-                              value={option}
-                              checked={formData.diagnosticTestDate === option}
-                              onChange={(e) => handleInputChange('diagnosticTestDate', e.target.value)}
-                              className="mr-3 mt-1 text-blue-600"
-                            />
-                            <span className={formData.diagnosticTestDate === option ? 'text-blue-600 font-medium' : ''}>
-                              {option}
-                            </span>
-                          </label>
-                        ))}
-                      </>
-                    )}
+                          <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
+                            Test time: {formatTime(test.startTime)} - {formatTime(test.endTime)} {test.timezone}
+                          </div>
+                          {test.location && test.location !== 'Online' && (
+                            <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
+                              Location: {test.location}
+                            </div>
+                          )}
+                          {test.currentEnrollment !== undefined && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {test.currentEnrollment}/{test.capacity} students registered
+                            </div>
+                          )}
+                          {test.isFull && (
+                            <div className="text-xs text-red-600 mt-1 font-medium">
+                              ⚠️ This test is full
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    ))}
                     
                     {/* Always show "can't make it" option */}
                     <label className="flex items-start p-4 border border-[#457BF5] rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">

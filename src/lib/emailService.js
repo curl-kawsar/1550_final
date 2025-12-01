@@ -1,13 +1,13 @@
 import nodemailer from 'nodemailer';
 
-// Email configuration using your provided settings
+// Email configuration using Hostinger mail server
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'giowm1091.siteground.biz',
+  host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
   port: parseInt(process.env.EMAIL_PORT) || 465,
-  secure: true, // true for 465, false for other ports
+  secure: true, // true for 465 (SSL), false for other ports
   auth: {
     user: process.env.EMAIL_USER || 'no-reply@1550plus.com',
-    pass: process.env.EMAIL_PASS || 'b|q2@21b*321'
+    pass: process.env.EMAIL_PASS || 'Y:9L/DfDT=u7'
   },
   tls: {
     rejectUnauthorized: false
