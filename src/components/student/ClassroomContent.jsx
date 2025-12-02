@@ -271,138 +271,129 @@ const ClassroomContent = forwardRef((props, ref) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-6 h-6 text-green-500" />
-            Welcome to Your Classroom, {studentInfo?.name || 'Student'}!
-          </CardTitle>
-          <p className="text-gray-600">
-            You have full access to all premium content. Start your journey to 1550+!
-          </p>
-        </CardHeader>
-      </Card>
+    <div className="flex h-screen bg-gray-50">
+      {/* Left Sidebar - Navigation */}
+      <div className="w-80 bg-gray-50 text-gray-800 overflow-y-auto border-r border-gray-200 shadow-sm">
 
-      {/* Video Player Section */}
-      {playingVideo && (
-        <Card className="border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="w-5 h-5 text-blue-500" />
-              {playingVideo.title}
-            </CardTitle>
-            {playingVideo.description && (
-              <p className="text-gray-600">{playingVideo.description}</p>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div 
-              className="w-full bg-black rounded-lg overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: playingVideo.embedCode }}
-            />
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="w-4 h-4" />
-                <span>{playingVideo.duration || 'Duration not specified'}</span>
+        
+        <div className="p-1 pt-2">
+          {classStructures.map((structure) => (
+            <div key={structure._id} className="mb-4">
+              <div className="px-1 py-2 text-base font-bold text-gray-700 uppercase tracking-wider bg-white rounded-lg mb-2 shadow-sm">
+                {structure.title}
               </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setPlayingVideo(null)}
-              >
-                Close Video
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Course Content */}
-      {classStructures.map((structure) => (
-        <Card key={structure._id} className="border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Unlock className="w-5 h-5 text-green-500" />
-              {structure.title}
-            </CardTitle>
-            <p className="text-gray-600">{structure.overview}</p>
-            {structure.description && (
-              <p className="text-sm text-gray-500">{structure.description}</p>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+              
               {structure.modules?.map((module) => (
-                <div key={module._id} className="border rounded-lg">
+                <div key={module._id} className="mb-2">
                   <button
                     onClick={() => handleModuleSelect(module)}
-                    className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+                    className={`w-full text-left px-1 py-2 rounded-lg text-lg font-semibold transition-colors ${
+                      selectedModule?._id === module._id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'hover:bg-gray-200 text-gray-800 bg-white'
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Book className="w-5 h-5 text-blue-500" />
-                        <div>
-                          <h4 className="font-semibold">{module.title}</h4>
-                          {module.description && (
-                            <p className="text-sm text-gray-600">{module.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {module.videos?.length > 0 && (
-                          <Badge variant="outline">
-                            {module.videos.length} videos
-                          </Badge>
-                        )}
-                        <Users className="w-4 h-4 text-gray-400" />
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Book className="w-5 h-5" />
+                      {module.title}
                     </div>
                   </button>
                   
+                  {/* Sub-videos for expanded module */}
                   {selectedModule?._id === module._id && module.videos?.length > 0 && (
-                    <div className="border-t bg-gray-50 p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {module.videos.map((video) => (
-                          <button
-                            key={video._id}
-                            onClick={() => handleVideoPlay(video)}
-                            className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-blue-300 hover:shadow-sm transition-all text-left"
-                          >
-                            <Play className="w-8 h-8 text-blue-500 bg-blue-50 p-2 rounded-full flex-shrink-0" />
-                            <div className="flex-1">
-                              <h5 className="font-medium text-sm">{video.title}</h5>
-                              {video.duration && (
-                                <p className="text-xs text-gray-500 flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {video.duration}
-                                </p>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {selectedModule?._id === module._id && (!module.videos || module.videos.length === 0) && (
-                    <div className="border-t bg-gray-50 p-4 text-center text-gray-500">
-                      No videos available in this module yet.
+                    <div className="ml-3 mt-1 space-y-1">
+                      {module.videos.map((video) => (
+                        <button
+                          key={video._id}
+                          onClick={() => handleVideoPlay(video)}
+                          className={`w-full text-left px-1 py-2 rounded-lg text-base transition-colors flex items-center gap-2 ${
+                            playingVideo?._id === video._id
+                              ? 'bg-blue-500 text-white shadow-md'
+                              : 'hover:bg-gray-100 text-gray-700 bg-white'
+                          }`}
+                        >
+                          <Play className="w-4 h-4" />
+                          {video.title}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               ))}
               
               {(!structure.modules || structure.modules.length === 0) && (
-                <div className="text-center py-8 text-gray-500">
-                  <Book className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p>No modules available yet. Content will be added soon!</p>
+                <div className="px-1 py-2 text-base text-gray-500 bg-white rounded-lg">
+                  No modules available yet
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Area - Video Player */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {playingVideo ? (
+          <>
+            {/* Video Title Bar */}
+            <div className="bg-white border-b px-8 py-6">
+              <h1 className="text-3xl font-bold text-gray-900">{playingVideo.title}</h1>
+              {playingVideo.description && (
+                <p className="text-gray-600 mt-2 text-lg">{playingVideo.description}</p>
+              )}
+            </div>
+            
+            {/* Video Content */}
+            <div className="flex-1 bg-white p-8">
+              <div className="max-w-4xl mx-auto">
+                <div 
+                  className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-lg"
+                  dangerouslySetInnerHTML={{ __html: playingVideo.embedCode }}
+                />
+                
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="flex items-center gap-6 text-lg text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      <span>{playingVideo.duration || 'Duration not specified'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Play className="w-5 h-5" />
+                      <span>Video Lesson</span>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setPlayingVideo(null)}
+                    className="text-lg px-6 py-3"
+                  >
+                    Close Video
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Welcome/No Video Selected State */
+          <div className="flex-1 flex items-center justify-center bg-white">
+            <div className="text-center max-w-lg">
+              <div className="w-28 h-28 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Play className="w-14 h-14 text-blue-600" />
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Welcome to Your SAT Course!
+              </h2>
+              <p className="text-gray-600 mb-6 text-xl">
+                Select a module from the sidebar to start learning. You have full access to all premium content.
+              </p>
+              <div className="flex items-center justify-center gap-3 text-lg text-green-600 bg-green-50 px-6 py-4 rounded-lg">
+                <CheckCircle className="w-6 h-6" />
+                <span>Premium Access Activated</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 });

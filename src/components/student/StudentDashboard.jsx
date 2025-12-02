@@ -311,14 +311,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
     }
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'reviewed': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'contacted': return 'bg-green-100 text-green-800 border-green-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
@@ -421,14 +413,8 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
             })}
           </nav>
 
-          {/* Sidebar Footer - Status and Actions */}
+          {/* Sidebar Footer - Actions */}
           <div className="p-4 border-t border-gray-200/60 bg-gradient-to-r from-gray-50/50 to-white space-y-4">
-            <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200/50 shadow-sm">
-              <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Status</span>
-              <Badge className={`${getStatusColor(student.status)} text-xs px-2 py-1 rounded-lg font-medium shadow-sm`}>
-                {student.status || 'pending'}
-              </Badge>
-            </div>
             <div className="space-y-2">
               <Button
                 onClick={handleRefresh}
@@ -489,9 +475,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                 </div>
               </div>
               <div className="hidden sm:flex items-center space-x-3">
-                <Badge className={`${getStatusColor(student.status)} text-xs sm:text-sm px-3 py-1.5 rounded-xl font-medium shadow-sm`}>
-                  {student.status || 'pending'}
-                </Badge>
                 <Button
                   onClick={handleRefresh}
                   variant="outline"
@@ -528,12 +511,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
             {mobileMenuOpen && (
               <div className="sm:hidden border-t border-gray-200/60 bg-gradient-to-r from-gray-50/50 to-white py-3">
                 <div className="flex flex-col space-y-3 px-4">
-                  <div className="flex items-center justify-between py-2 px-3 bg-white rounded-xl border border-gray-200/50 shadow-sm">
-                    <span className="text-sm text-gray-600 font-medium">Status:</span>
-                    <Badge className={`${getStatusColor(student.status)} text-xs px-2 py-1 rounded-lg font-medium`}>
-                      {student.status || 'pending'}
-                    </Badge>
-                  </div>
                   <Button
                     onClick={handleRefresh}
                     variant="outline"
@@ -674,10 +651,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/50">
                     <span className="text-sm font-semibold text-blue-800">Class Assignment</span>
-                    <Badge className={`${getStatusColor(student.status)} px-3 py-1 rounded-lg font-medium shadow-sm`}>
-                      {student.status === 'pending' ? 'In Progress' : 
-                       student.status === 'reviewed' ? 'Under Review' : 'Confirmed'}
-                    </Badge>
                   </div>
                   <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-200/50">
                     <span className="font-medium">Submitted on:</span> {formatDate(student.submittedAt)}
