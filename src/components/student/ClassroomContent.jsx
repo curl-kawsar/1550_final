@@ -14,16 +14,34 @@ import {
   Star,
   ShoppingCart,
   Users,
-  Target
+  Target,
+  X
 } from 'lucide-react';
 import { toast } from "sonner";
 import Link from 'next/link';
+import { useVideoProgress } from '@/hooks/useVideoProgress';
 
 const ClassroomContent = forwardRef((props, ref) => {
   const [classroomData, setClassroomData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
+
+  // Hook for automatic video progress tracking
+  const videoWithMetadata = playingVideo ? {
+    ...playingVideo,
+    moduleId: selectedModule?._id,
+    structureId: classroomData?.classStructures?.find(s => 
+      s.modules?.some(m => m._id === selectedModule?._id)
+    )?._id
+  } : null;
+
+  const { markVideoCompleted: autoMarkCompleted } = useVideoProgress(
+    videoWithMetadata, 
+    () => {
+      fetchClassroomContent(); // Refresh data when video is auto-completed
+    }
+  );
 
   useEffect(() => {
     fetchClassroomContent();
@@ -133,7 +151,91 @@ const ClassroomContent = forwardRef((props, ref) => {
   };
 
   const handleVideoPlay = (video) => {
+    // Only allow playing if video is unlocked
+    if (!video.isUnlocked) {
+      toast.error('Complete the previous video to unlock this one');
+      return;
+    }
     setPlayingVideo(video);
+  };
+
+  const markVideoCompleted = async (video) => {
+    try {
+      const token = localStorage.getItem('studentToken');
+      if (!token) return;
+
+      await fetch('/api/student/video-progress', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          videoId: video._id,
+          moduleId: selectedModule._id,
+          structureId: classroomData.classStructures.find(s => 
+            s.modules.some(m => m._id === selectedModule._id)
+          )?._id
+        })
+      });
+
+      // Refresh classroom data to get updated unlock status
+      await fetchClassroomContent();
+      toast.success('🎉 Video completed! Next video unlocked.');
+    } catch (error) {
+      console.error('Error marking video as completed:', error);
+      toast.error('Failed to mark video as completed');
+    }
+  };
+
+  const getNextVideo = () => {
+    if (!playingVideo || !selectedModule) return null;
+
+    const currentModule = selectedModule;
+    const currentVideoIndex = currentModule.videos.findIndex(v => v._id === playingVideo._id);
+    
+    // Check if there's a next video in the current module
+    if (currentVideoIndex < currentModule.videos.length - 1) {
+      const nextVideo = currentModule.videos[currentVideoIndex + 1];
+      // Only return if it's unlocked
+      if (nextVideo.isUnlocked) {
+        return nextVideo;
+      }
+    }
+    
+    // If no next video in current module, check next module
+    const currentStructure = classroomData.classStructures.find(s => 
+      s.modules.some(m => m._id === selectedModule._id)
+    );
+    
+    if (currentStructure) {
+      const currentModuleIndex = currentStructure.modules.findIndex(m => m._id === selectedModule._id);
+      if (currentModuleIndex < currentStructure.modules.length - 1) {
+        const nextModule = currentStructure.modules[currentModuleIndex + 1];
+        // Get first video of next module if it's unlocked
+        if (nextModule.videos && nextModule.videos.length > 0 && nextModule.videos[0].isUnlocked) {
+          return { video: nextModule.videos[0], module: nextModule };
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  const handleNextVideo = () => {
+    const nextItem = getNextVideo();
+    if (nextItem) {
+      if (nextItem.module) {
+        // Switch to next module and play first video
+        setSelectedModule(nextItem.module);
+        setPlayingVideo(nextItem.video);
+      } else {
+        // Play next video in current module
+        setPlayingVideo(nextItem);
+      }
+    } else {
+      toast.info('Complete the current video to unlock the next one!');
+    }
   };
 
   const handleModuleSelect = (module) => {
@@ -283,43 +385,91 @@ const ClassroomContent = forwardRef((props, ref) => {
                 {structure.title}
               </div>
               
-              {structure.modules?.map((module) => (
-                <div key={module._id} className="mb-2">
-                  <button
-                    onClick={() => handleModuleSelect(module)}
-                    className={`w-full text-left px-1 py-2 rounded-lg text-lg font-semibold transition-colors ${
-                      selectedModule?._id === module._id
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'hover:bg-gray-200 text-gray-800 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Book className="w-5 h-5" />
-                      {module.title}
-                    </div>
-                  </button>
+              {structure.modules?.map((module) => {
+                const completedVideos = module.videos?.filter(v => v.isCompleted).length || 0;
+                const totalVideos = module.videos?.length || 0;
+                const moduleProgress = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
+                
+                return (
+                  <div key={module._id} className="mb-2">
+                    <button
+                      onClick={() => handleModuleSelect(module)}
+                      className={`w-full text-left px-1 py-2 rounded-lg text-lg font-semibold transition-colors ${
+                        selectedModule?._id === module._id
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'hover:bg-gray-200 text-gray-800 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Book className="w-5 h-5" />
+                          {module.title}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">
+                            {completedVideos}/{totalVideos}
+                          </span>
+                          {moduleProgress === 100 && (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                        </div>
+                      </div>
+                      {totalVideos > 0 && (
+                        <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                          <div 
+                            className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                            style={{ width: `${moduleProgress}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </button>
                   
                   {/* Sub-videos for expanded module */}
                   {selectedModule?._id === module._id && module.videos?.length > 0 && (
                     <div className="ml-3 mt-1 space-y-1">
-                      {module.videos.map((video) => (
-                        <button
-                          key={video._id}
-                          onClick={() => handleVideoPlay(video)}
-                          className={`w-full text-left px-1 py-2 rounded-lg text-base transition-colors flex items-center gap-2 ${
-                            playingVideo?._id === video._id
-                              ? 'bg-blue-500 text-white shadow-md'
-                              : 'hover:bg-gray-100 text-gray-700 bg-white'
-                          }`}
-                        >
-                          <Play className="w-4 h-4" />
-                          {video.title}
-                        </button>
-                      ))}
+                      {module.videos.map((video) => {
+                        const isLocked = !video.isUnlocked;
+                        const isCompleted = video.isCompleted;
+                        const isPlaying = playingVideo?._id === video._id;
+                        
+                        return (
+                          <button
+                            key={video._id}
+                            onClick={() => handleVideoPlay(video)}
+                            disabled={isLocked}
+                            className={`w-full text-left px-1 py-2 rounded-lg text-base transition-colors flex items-center gap-2 ${
+                              isLocked
+                                ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400'
+                                : isPlaying
+                                ? 'bg-blue-500 text-white shadow-md'
+                                : isCompleted
+                                ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                                : 'hover:bg-gray-100 text-gray-700 bg-white'
+                            }`}
+                          >
+                            {isLocked ? (
+                              <Lock className="w-4 h-4" />
+                            ) : isCompleted ? (
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                            <span className={`flex-1 ${isLocked ? 'line-through' : ''}`}>
+                              {video.title}
+                            </span>
+                            {video.watchedPercentage > 0 && video.watchedPercentage < 100 && (
+                              <Badge variant="secondary" className="text-xs">
+                                {video.watchedPercentage}%
+                              </Badge>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              ))}
+              );
+            })}
               
               {(!structure.modules || structure.modules.length === 0) && (
                 <div className="px-1 py-2 text-base text-gray-500 bg-white rounded-lg">
@@ -361,14 +511,41 @@ const ClassroomContent = forwardRef((props, ref) => {
                       <Play className="w-5 h-5" />
                       <span>Video Lesson</span>
                     </div>
+                    {playingVideo.isCompleted && (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="w-5 h-5" />
+                        <span>Completed</span>
+                      </div>
+                    )}
                   </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setPlayingVideo(null)}
-                    className="text-lg px-6 py-3"
-                  >
-                    Close Video
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    {!playingVideo.isCompleted && (
+                      <Button 
+                        onClick={() => markVideoCompleted(playingVideo)}
+                        className="text-lg px-6 py-3 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Mark as Completed
+                      </Button>
+                    )}
+                    {getNextVideo() && (
+                      <Button 
+                        onClick={handleNextVideo}
+                        className="text-lg px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+                        title={`Next: ${getNextVideo().video ? getNextVideo().video.title : getNextVideo().title}`}
+                      >
+                        Next Video
+                        <Play className="w-5 h-5 ml-2" />
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setPlayingVideo(null)}
+                      className="text-lg px-6 py-3"
+                    >
+                      Close Video
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -384,11 +561,21 @@ const ClassroomContent = forwardRef((props, ref) => {
                 Welcome to Your SAT Course!
               </h2>
               <p className="text-gray-600 mb-6 text-xl">
-                Select a module from the sidebar to start learning. You have full access to all premium content.
+                Select a module from the sidebar to start learning. Complete videos to unlock the next ones!
               </p>
-              <div className="flex items-center justify-center gap-3 text-lg text-green-600 bg-green-50 px-6 py-4 rounded-lg">
-                <CheckCircle className="w-6 h-6" />
-                <span>Premium Access Activated</span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-3 text-lg text-green-600 bg-green-50 px-6 py-4 rounded-lg">
+                  <CheckCircle className="w-6 h-6" />
+                  <span>Premium Access Activated</span>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-blue-800 font-medium mb-2">📚 How it works:</p>
+                  <div className="text-sm text-blue-700 space-y-1">
+                    <p>• First video in each module is always unlocked</p>
+                    <p>• Complete a video to unlock the next one</p>
+                    <p>• Track your progress with completion badges</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import ClassStructure from '@/models/ClassStructure';
 import Module from '@/models/Module';
 import Video from '@/models/Video';
 import Student from '@/models/Student';
+import VideoProgress from '@/models/VideoProgress';
 import { verifyStudentToken } from '@/lib/auth';
 
 // Get classroom content for students
@@ -67,6 +68,12 @@ export async function GET(request) {
           .sort({ sortOrder: 1, createdAt: 1 })
           .lean();
 
+        // Get student's video progress
+        const studentProgress = await VideoProgress.getStudentProgress(studentPayload.studentId);
+        const progressMap = new Map(
+          studentProgress.map(p => [p.videoId.toString(), p])
+        );
+
         const modulesWithVideos = await Promise.all(
           modules.map(async (module) => {
             const videos = await Video.find({ 
@@ -75,7 +82,33 @@ export async function GET(request) {
             })
               .sort({ sortOrder: 1, createdAt: 1 })
               .lean();
-            return { ...module, videos };
+
+            // Add progress and unlock status to each video
+            const videosWithProgress = await Promise.all(
+              videos.map(async (video, index) => {
+                const progress = progressMap.get(video._id.toString());
+                
+                // For sequential unlocking: first video is always unlocked
+                // Subsequent videos are unlocked if previous video is completed
+                let isUnlocked = index === 0; // First video is always unlocked
+                
+                if (index > 0) {
+                  const previousVideo = videos[index - 1];
+                  const previousProgress = progressMap.get(previousVideo._id.toString());
+                  isUnlocked = previousProgress && previousProgress.isCompleted;
+                }
+
+                return {
+                  ...video,
+                  isUnlocked,
+                  isCompleted: progress?.isCompleted || false,
+                  watchedPercentage: progress?.watchedPercentage || 0,
+                  progress: progress || null
+                };
+              })
+            );
+
+            return { ...module, videos: videosWithProgress };
           })
         );
 
