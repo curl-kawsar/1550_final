@@ -5,6 +5,104 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2, Shield, Star, Clock } from 'lucide-react';
 
+// Component for coupon input/display within each card
+const CouponBox = ({ 
+    couponCode, 
+    setCouponCode, 
+    couponApplied, 
+    couponLoading, 
+    handleApplyCoupon, 
+    handleRemoveCoupon 
+}) => {
+    return (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+            {!couponApplied ? (
+                <div className="space-y-3">
+                    <div className="text-sm font-medium text-gray-700 text-center">
+                        Have a coupon code?
+                        <div className="text-xs text-gray-500 mt-1">
+                            (Applies to selected plan)
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Enter code"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={couponLoading}
+                        />
+                        <button
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-medium px-3 py-2 text-sm rounded transition-colors duration-300 flex items-center gap-1"
+                        >
+                            {couponLoading ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    Applying...
+                                </>
+                            ) : (
+                                'Apply'
+                            )}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded p-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="text-sm font-semibold text-green-800">
+                                    Coupon Applied!
+                                </div>
+                                <div className="text-xs text-green-700">
+                                    <strong>{couponApplied.coupon.code}</strong> - {couponApplied.discount.discountPercentage}% off
+                                </div>
+                                <div className="text-xs text-gray-600 mt-1">
+                                    Will apply to your selected plan
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleRemoveCoupon}
+                                className="text-red-600 hover:text-red-800 font-medium text-xs"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {couponApplied.discount.isFree && (
+                        <div className="p-2 bg-yellow-100 border border-yellow-300 rounded text-center">
+                            <span className="text-yellow-800 font-medium text-xs">
+                                FREE ACCESS!
+                            </span>
+                        </div>
+                    )}
+                    
+                    <div className="text-xs text-gray-600 space-y-1">
+                        <div className="flex justify-between">
+                            <span>Original:</span>
+                            <span>${couponApplied.discount.originalAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-green-600">
+                            <span>Discount:</span>
+                            <span>-${couponApplied.discount.discountAmount}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-blue-800 border-t pt-1">
+                            <span>Final:</span>
+                            <span>
+                                {couponApplied.discount.isFree ? 'FREE!' : `$${couponApplied.discount.finalAmount}`}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const SpecialOfferContent = () => {
     const [loading, setLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({
@@ -13,9 +111,22 @@ const SpecialOfferContent = () => {
         minutes: 30,
         seconds: 50
     });
-    const [couponCode, setCouponCode] = useState('');
-    const [couponApplied, setCouponApplied] = useState(null);
-    const [couponLoading, setCouponLoading] = useState(false);
+    // Separate coupon states for each card
+    const [recordingsCoupon, setRecordingsCoupon] = useState({
+        code: '',
+        applied: null,
+        loading: false
+    });
+    const [officeHoursCoupon, setOfficeHoursCoupon] = useState({
+        code: '',
+        applied: null,
+        loading: false
+    });
+    const [completeCoupon, setCompleteCoupon] = useState({
+        code: '',
+        applied: null,
+        loading: false
+    });
     const [originalPrice] = useState(99);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -57,13 +168,16 @@ const SpecialOfferContent = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) {
+    const handleApplyCoupon = async (planType) => {
+        const couponState = getCouponState(planType);
+        const setCouponState = getCouponSetter(planType);
+        
+        if (!couponState.code.trim()) {
             toast.error('Please enter a coupon code');
             return;
         }
 
-        setCouponLoading(true);
+        setCouponState(prev => ({ ...prev, loading: true }));
         try {
             const response = await fetch('/api/coupons/validate', {
                 method: 'POST',
@@ -71,7 +185,7 @@ const SpecialOfferContent = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    code: couponCode.trim(),
+                    code: couponState.code.trim(),
                     planType: 'all', // Allow coupon for all plan types
                     amount: originalPrice
                 })
@@ -80,25 +194,42 @@ const SpecialOfferContent = () => {
             const data = await response.json();
 
             if (response.ok && data.valid) {
-                setCouponApplied(data);
+                setCouponState(prev => ({ ...prev, applied: data, loading: false }));
                 toast.success(`Coupon applied! ${data.discount.discountPercentage}% discount`);
             } else {
                 toast.error(data.error || 'Invalid coupon code');
-                setCouponApplied(null);
+                setCouponState(prev => ({ ...prev, applied: null, loading: false }));
             }
         } catch (error) {
             console.error('Error applying coupon:', error);
             toast.error('Failed to apply coupon');
-            setCouponApplied(null);
-        } finally {
-            setCouponLoading(false);
+            setCouponState(prev => ({ ...prev, applied: null, loading: false }));
         }
     };
 
-    const handleRemoveCoupon = () => {
-        setCouponCode('');
-        setCouponApplied(null);
+    const handleRemoveCoupon = (planType) => {
+        const setCouponState = getCouponSetter(planType);
+        setCouponState({ code: '', applied: null, loading: false });
         toast.info('Coupon removed');
+    };
+
+    // Helper functions to get coupon state and setter based on plan type
+    const getCouponState = (planType) => {
+        switch (planType) {
+            case 'recordings_only': return recordingsCoupon;
+            case 'office_hours_only': return officeHoursCoupon;
+            case 'complete': return completeCoupon;
+            default: return recordingsCoupon;
+        }
+    };
+
+    const getCouponSetter = (planType) => {
+        switch (planType) {
+            case 'recordings_only': return setRecordingsCoupon;
+            case 'office_hours_only': return setOfficeHoursCoupon;
+            case 'complete': return setCompleteCoupon;
+            default: return setRecordingsCoupon;
+        }
     };
 
     const handlePurchase = async (planType = 'recordings_only') => {
@@ -111,6 +242,9 @@ const SpecialOfferContent = () => {
                 return;
             }
 
+            // Get the appropriate coupon for the plan type
+            const currentCoupon = getCouponState(planType);
+            
             const response = await fetch('/api/stripe/create-checkout', {
                 method: 'POST',
                 headers: {
@@ -119,7 +253,7 @@ const SpecialOfferContent = () => {
                 },
                 body: JSON.stringify({
                     planType,
-                    ...(couponApplied && { couponCode: couponApplied.coupon.code })
+                    ...(currentCoupon.applied && { couponCode: currentCoupon.applied.coupon.code })
                 })
             });
 
@@ -208,104 +342,6 @@ const SpecialOfferContent = () => {
                 </div>
             </div>
 
-            {/* Coupon Section */}
-            <div className="py-8 px-4">
-                <div className="max-w-2xl mx-auto">
-                    <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
-                        <h3 className="text-xl font-bold text-black mb-4 text-center">
-                            Have a coupon code?
-                        </h3>
-                        
-                        {!couponApplied ? (
-                            <div className="space-y-4">
-                                <div className="flex gap-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Enter coupon code"
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        disabled={couponLoading}
-                                    />
-                                    <button
-                                        onClick={handleApplyCoupon}
-                                        disabled={couponLoading || !couponCode.trim()}
-                                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-300 flex items-center gap-2"
-                                    >
-                                        {couponLoading ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                Applying...
-                                            </>
-                                        ) : (
-                                            'Apply'
-                                        )}
-                                    </button>
-                                </div>
-                                <p className="text-sm text-gray-600 text-center">
-                                    Enter your coupon code to get a discount on your purchase
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="font-semibold text-green-800">
-                                                Coupon Applied! 🎉
-                                            </h4>
-                                            <p className="text-green-700">
-                                                <strong>{couponApplied.coupon.code}</strong> - {couponApplied.discount.discountPercentage}% off
-                                            </p>
-                                            {couponApplied.coupon.description && (
-                                                <p className="text-sm text-green-600 mt-1">
-                                                    {couponApplied.coupon.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={handleRemoveCoupon}
-                                            className="text-red-600 hover:text-red-800 font-medium text-sm"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h4 className="font-semibold text-blue-800 mb-2">Discount Summary</h4>
-                                    <div className="space-y-1 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Original Price:</span>
-                                            <span className="font-medium">${couponApplied.discount.originalAmount}</span>
-                                        </div>
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Discount ({couponApplied.discount.discountPercentage}%):</span>
-                                            <span className="font-medium">-${couponApplied.discount.discountAmount}</span>
-                                        </div>
-                                        <div className="border-t pt-1 mt-2">
-                                            <div className="flex justify-between text-lg font-bold">
-                                                <span className="text-blue-800">Final Price:</span>
-                                                <span className="text-blue-800">
-                                                    {couponApplied.discount.isFree ? 'FREE!' : `$${couponApplied.discount.finalAmount}`}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {couponApplied.discount.isFree && (
-                                        <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-center">
-                                            <span className="text-yellow-800 font-medium">
-                                                🎉 This coupon gives you FREE ACCESS! 🎉
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
 
             {/* Pricing Plans Section */}
             <div id="pricing" className="py-16 px-4">
@@ -325,18 +361,18 @@ const SpecialOfferContent = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         {/* Recordings Only Plan */}
-                        <div className="bg-white border-2 border-blue-500 rounded-xl p-8 text-center flex flex-col h-full">
-                            <div className="mb-6 flex justify-center">
+                        <div className="bg-white border-2 border-blue-500 rounded-xl p-6 text-center flex flex-col h-full">
+                            <div className="mb-4 flex justify-center">
                                 <img src="/camera.png" alt="Camera" className="w-16 h-16" />
                             </div>
-                            <div className="text-4xl font-bold text-blue-500 mb-4">
-                                {couponApplied ? (
+                            <div className="text-4xl font-bold text-blue-500 mb-3">
+                                {recordingsCoupon.applied ? (
                                     <>
-                                        {couponApplied.discount.isFree ? (
+                                        {recordingsCoupon.applied.discount.isFree ? (
                                             <span className="text-green-600">FREE!</span>
                                         ) : (
                                             <>
-                                                ${couponApplied.discount.finalAmount}
+                                                ${recordingsCoupon.applied.discount.finalAmount}
                                                 <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
                                             </>
                                         )}
@@ -348,14 +384,26 @@ const SpecialOfferContent = () => {
                                 )}
                             </div>
                             <div className="text-sm text-gray-500 mb-2">(processing fee will apply)</div>
-                            <h3 className="text-xl font-bold text-black mb-6">
+                            <h3 className="text-xl font-bold text-black mb-4">
                                 RECORDINGS ONLY
                             </h3>
+                            
                             <div className="flex-grow"></div>
+                            
+                            {/* Coupon Box */}
+                            <CouponBox 
+                                couponCode={recordingsCoupon.code}
+                                setCouponCode={(value) => setRecordingsCoupon(prev => ({ ...prev, code: value }))}
+                                couponApplied={recordingsCoupon.applied}
+                                couponLoading={recordingsCoupon.loading}
+                                handleApplyCoupon={() => handleApplyCoupon('recordings_only')}
+                                handleRemoveCoupon={() => handleRemoveCoupon('recordings_only')}
+                            />
+                            
                             <button 
                                 onClick={() => handlePurchase('recordings_only')}
                                 disabled={loading}
-                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full mt-auto flex items-center justify-center gap-2"
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
@@ -369,18 +417,18 @@ const SpecialOfferContent = () => {
                         </div>
 
                         {/* Office Hours Only Plan */}
-                        <div className="bg-white border-2 border-blue-500 rounded-xl p-8 text-center flex flex-col h-full">
-                            <div className="mb-6 flex justify-center">
+                        <div className="bg-white border-2 border-blue-500 rounded-xl p-6 text-center flex flex-col h-full">
+                            <div className="mb-4 flex justify-center">
                                 <img src="/time.png" alt="Time" className="w-16 h-16" />
                             </div>
-                            <div className="text-4xl font-bold text-blue-500 mb-4">
-                                {couponApplied ? (
+                            <div className="text-4xl font-bold text-blue-500 mb-3">
+                                {officeHoursCoupon.applied ? (
                                     <>
-                                        {couponApplied.discount.isFree ? (
+                                        {officeHoursCoupon.applied.discount.isFree ? (
                                             <span className="text-green-600">FREE!</span>
                                         ) : (
                                             <>
-                                                ${couponApplied.discount.finalAmount}
+                                                ${officeHoursCoupon.applied.discount.finalAmount}
                                                 <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
                                             </>
                                         )}
@@ -395,15 +443,27 @@ const SpecialOfferContent = () => {
                             <h3 className="text-xl font-bold text-black mb-2">
                                 OFFICE HOURS ONLY
                             </h3>
-                            <p className="text-gray-600 text-sm mb-6">
+                            <p className="text-gray-600 text-sm mb-4">
                                 Mon, Tues, Wed, Thurs<br />
                                 5:30-6:30pm PST
                             </p>
+                            
                             <div className="flex-grow"></div>
+                            
+                            {/* Coupon Box */}
+                            <CouponBox 
+                                couponCode={officeHoursCoupon.code}
+                                setCouponCode={(value) => setOfficeHoursCoupon(prev => ({ ...prev, code: value }))}
+                                couponApplied={officeHoursCoupon.applied}
+                                couponLoading={officeHoursCoupon.loading}
+                                handleApplyCoupon={() => handleApplyCoupon('office_hours_only')}
+                                handleRemoveCoupon={() => handleRemoveCoupon('office_hours_only')}
+                            />
+                            
                             <button 
                                 onClick={() => handlePurchase('office_hours_only')}
                                 disabled={loading}
-                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full mt-auto flex items-center justify-center gap-2"
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
@@ -417,20 +477,20 @@ const SpecialOfferContent = () => {
                         </div>
 
                         {/* Recordings and Office Hours Plan */}
-                        <div className="bg-white border-2 border-blue-500 rounded-xl p-8 text-center flex flex-col h-full">
-                            <div className="mb-6 flex justify-center items-center gap-2">
+                        <div className="bg-white border-2 border-blue-500 rounded-xl p-6 text-center flex flex-col h-full">
+                            <div className="mb-4 flex justify-center items-center gap-2">
                                 <img src="/camera.png" alt="Camera" className="w-12 h-12" />
                                 <span className="text-blue-500 text-2xl font-bold">+</span>
                                 <img src="/time.png" alt="Time" className="w-12 h-12" />
                             </div>
-                            <div className="text-4xl font-bold text-blue-500 mb-4">
-                                {couponApplied ? (
+                            <div className="text-4xl font-bold text-blue-500 mb-3">
+                                {completeCoupon.applied ? (
                                     <>
-                                        {couponApplied.discount.isFree ? (
+                                        {completeCoupon.applied.discount.isFree ? (
                                             <span className="text-green-600">FREE!</span>
                                         ) : (
                                             <>
-                                                ${couponApplied.discount.finalAmount}
+                                                ${completeCoupon.applied.discount.finalAmount}
                                                 <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
                                             </>
                                         )}
@@ -445,15 +505,27 @@ const SpecialOfferContent = () => {
                             <h3 className="text-xl font-bold text-black mb-2">
                                 RECORDINGS AND<br />OFFICE HOURS
                             </h3>
-                            <p className="text-gray-600 text-sm mb-6">
+                            <p className="text-gray-600 text-sm mb-4">
                                 Mon, Tues, Wed, Thurs<br />
                                 5:30-6:30pm PST
                             </p>
+                            
                             <div className="flex-grow"></div>
+                            
+                            {/* Coupon Box */}
+                            <CouponBox 
+                                couponCode={completeCoupon.code}
+                                setCouponCode={(value) => setCompleteCoupon(prev => ({ ...prev, code: value }))}
+                                couponApplied={completeCoupon.applied}
+                                couponLoading={completeCoupon.loading}
+                                handleApplyCoupon={() => handleApplyCoupon('complete')}
+                                handleRemoveCoupon={() => handleRemoveCoupon('complete')}
+                            />
+                            
                             <button 
                                 onClick={() => handlePurchase('complete')}
                                 disabled={loading}
-                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full mt-auto flex items-center justify-center gap-2"
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 w-full flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
