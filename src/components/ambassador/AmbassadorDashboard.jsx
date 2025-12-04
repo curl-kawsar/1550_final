@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 
 export default function AmbassadorDashboard({ ambassador, onLogout }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -51,6 +52,59 @@ export default function AmbassadorDashboard({ ambassador, onLogout }) {
       toast.success('Copied to clipboard!')
     } catch (err) {
       toast.error('Failed to copy to clipboard')
+    }
+  }
+
+  const generateAmbassadorCard = async () => {
+    setIsGenerating(true)
+    try {
+      const templateSrc = '/ambassador-template.png'
+      const img = new Image()
+      img.src = templateSrc
+      img.crossOrigin = 'anonymous'
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
+
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+
+      // Draw template
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+      // Define the orange box area proportions (centered)
+      const boxX = canvas.width * 0.15
+      const boxWidth = canvas.width * 0.70
+      const boxY = canvas.height * 0.40
+      const boxHeight = canvas.height * 0.24
+
+      // Text styling
+      const fontSize = Math.floor(canvas.width * 0.1)
+      ctx.font = `${fontSize}px "Norwester", "Arial Black", sans-serif`
+      ctx.fillStyle = '#FFFFFF'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      const codeText = ambassador?.ambassadorCode || 'YOURCODE'
+      const verticalOffset = 80 // move text 100px lower than center
+      ctx.fillText(codeText, boxX + boxWidth / 2, boxY + boxHeight / 2 + verticalOffset)
+
+      // Download
+      const link = document.createElement('a')
+      link.download = `ambassador-${codeText}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+
+      toast.success('Ambassador graphic generated')
+    } catch (error) {
+      console.error('Generate ambassador card error:', error)
+      toast.error('Failed to generate ambassador graphic')
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -214,6 +268,25 @@ export default function AmbassadorDashboard({ ambassador, onLogout }) {
               >
                 <Users className="w-4 h-4 mr-2" />
                 View Registration Page
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                onClick={generateAmbassadorCard}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Generate Shareable Graphic
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
