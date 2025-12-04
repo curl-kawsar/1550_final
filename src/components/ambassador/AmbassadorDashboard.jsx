@@ -140,17 +140,84 @@ export default function AmbassadorDashboard({ ambassador, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/navbar-logo.png" 
-                alt="1550 Plus Logo" 
-                className="h-8"
-              />
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
+        <div className="px-4 py-5 border-b border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900">Ambassador</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {ambassador.firstName} {ambassador.lastName}
+          </p>
+          <div className="mt-3">
+            <p className="text-xs text-gray-500">Code</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className="font-mono text-base px-3 py-1">
+                {ambassador.ambassadorCode}
+              </Badge>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => copyToClipboard(ambassador.ambassadorCode)}
+                className="p-1 h-7 w-7"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 px-3 py-4 space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => copyToClipboard(`Use my ambassador code: ${ambassador.ambassadorCode}`)}
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Share Code
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => window.open('/register', '_blank')}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Registration Page
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={generateAmbassadorCard}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 mr-2" />
+                Shareable Graphic
+              </>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-600"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <div className="flex-1">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
                   Ambassador Dashboard
@@ -159,32 +226,23 @@ export default function AmbassadorDashboard({ ambassador, onLogout }) {
                   Welcome back, {ambassador.firstName} {ambassador.lastName}
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Ambassador Info & Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Ambassador Profile */}
@@ -380,6 +438,7 @@ export default function AmbassadorDashboard({ ambassador, onLogout }) {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   )
 }
