@@ -26,7 +26,6 @@ import {
   Star,
   BookOpen,
   Target,
-  LogOut,
   Settings,
   MessageSquare,
   HelpCircle,
@@ -426,15 +425,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
-              <Button
-                onClick={onLogout}
-                variant="outline"
-                size="sm"
-                className="w-full flex items-center gap-2 text-xs font-medium rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
             </div>
           </div>
         </div>
@@ -485,14 +475,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                   {refreshing ? 'Refreshing...' : 'Refresh'}
                 </Button>
-                <Button
-                  onClick={onLogout}
-                  variant="outline"
-                  className="flex items-center gap-2 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
               </div>
               {/* Mobile actions dropdown */}
               <div className="sm:hidden">
@@ -520,15 +502,6 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   >
                     <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                     {refreshing ? 'Refreshing...' : 'Refresh'}
-                  </Button>
-                  <Button
-                    onClick={onLogout}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 justify-start rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
                   </Button>
                 </div>
               </div>

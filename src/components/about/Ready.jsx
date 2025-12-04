@@ -28,13 +28,15 @@ const Ready = () => {
             <h3 className="text-2xl lg:text-3xl font-bold uppercase tracking-wide mb-6">
               Private Tutoring
             </h3>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
-            >
-              Schedule a Call Now
-            </Button>
+            <Link href="https://tfft.io/OYdUMBI" target="_blank" rel="noopener noreferrer">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+              >
+                Schedule a Call Now
+              </Button>
+            </Link>
           </div>
 
           {/* School Group Card */}
