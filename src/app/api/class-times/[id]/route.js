@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     
     const classTime = await ClassTime.findById(id)
       .populate('createdBy', 'name email')
@@ -79,7 +79,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     const updates = await request.json();
     
     // Find the class time
@@ -164,7 +164,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     
     // Find the class time
     const classTime = await ClassTime.findById(id);

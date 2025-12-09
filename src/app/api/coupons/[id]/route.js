@@ -64,7 +64,7 @@ export async function GET(request, { params }) {
 
     await connectToDatabase();
 
-    const { id } = params;
+    const { id } = await params;
 
     const coupon = await Coupon.findById(id)
       .populate('createdBy', 'name email')
@@ -116,7 +116,7 @@ export async function PATCH(request, { params }) {
 
     await connectToDatabase();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const coupon = await Coupon.findById(id);
@@ -210,7 +210,7 @@ export async function DELETE(request, { params }) {
 
     await connectToDatabase();
 
-    const { id } = params;
+    const { id } = await params;
 
     const coupon = await Coupon.findById(id);
     if (!coupon) {

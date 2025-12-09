@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     await connectToDatabase();
     
@@ -75,7 +75,7 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { title, overview, description, requiresPayment, sortOrder, isActive } = body;
 
@@ -138,7 +138,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     await connectToDatabase();
 

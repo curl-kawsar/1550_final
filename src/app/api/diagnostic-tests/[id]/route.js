@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     
     const diagnosticTest = await DiagnosticTest.findById(id)
       .populate('createdBy', 'name email')
@@ -79,7 +79,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     const updates = await request.json();
     
     // Find the diagnostic test
@@ -176,7 +176,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     
-    const { id } = params;
+    const { id } = await params;
     
     // Find the diagnostic test
     const diagnosticTest = await DiagnosticTest.findById(id);
