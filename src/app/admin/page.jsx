@@ -20,6 +20,7 @@ import ClassroomManagement from '@/components/admin/ClassroomManagement'
 import SalesReport from '@/components/admin/SalesReport'
 import CouponManagement from '@/components/admin/CouponManagement'
 import CouponUsageHistory from '@/components/admin/CouponUsageHistory'
+import AnnouncementManagement from '@/components/admin/AnnouncementManagement'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -99,6 +100,12 @@ export default function AdminDashboard() {
         {activeTab === 'sales' && (
           <div>
             <SalesReport />
+          </div>
+        )}
+
+        {activeTab === 'announcements' && (
+          <div>
+            <AnnouncementManagement />
           </div>
         )}
 

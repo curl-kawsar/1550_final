@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign, Percent, Receipt } from "lucide-react"
+import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign, Percent, Receipt, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -18,6 +18,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'students', label: 'Students', icon: Users },
     { id: 'sales', label: 'Sales Report', icon: DollarSign },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { 
       id: 'coupons', 
       label: 'Coupons', 

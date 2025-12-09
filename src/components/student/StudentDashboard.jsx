@@ -37,7 +37,8 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  Play
+  Play,
+  Megaphone
 } from 'lucide-react'
 
 export default function StudentDashboard({ student, onLogout, onRefreshStudent }) {
@@ -45,6 +46,8 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
   const [refreshing, setRefreshing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [announcement, setAnnouncement] = useState(null)
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const scrollContainerRef = useRef(null)
   const classroomContentRef = useRef(null)
   const searchParams = useSearchParams()
@@ -201,6 +204,42 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
     setMobileMenuOpen(false)
     setSidebarOpen(false) // Close sidebar on mobile after selection
   }
+
+  // Fetch latest announcement for modal
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      if (typeof window === 'undefined') return;
+      try {
+        const storedToken = typeof window !== 'undefined' ? localStorage.getItem('studentToken') : null;
+        const res = await fetch('/api/student/announcements', {
+          method: 'GET',
+          headers: storedToken ? { Authorization: `Bearer ${storedToken}` } : {},
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = data.announcements?.[0];
+        if (!latest) return;
+
+        const seenKey = `announcement_seen_${latest._id}`;
+        if (!localStorage.getItem(seenKey)) {
+          setAnnouncement(latest);
+          setShowAnnouncementModal(true);
+        }
+      } catch (error) {
+        console.error('Announcement fetch error:', error);
+      }
+    };
+
+    fetchAnnouncement();
+  }, []);
+
+  const handleDismissAnnouncement = () => {
+    if (typeof window !== 'undefined' && announcement?._id) {
+      localStorage.setItem(`announcement_seen_${announcement._id}`, 'true');
+    }
+    setShowAnnouncementModal(false);
+  };
 
   // Helper function to format time from 24-hour to 12-hour format
   const formatTime = (timeString) => {
@@ -1174,6 +1213,34 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
         )}
         </div>
       </div>
+
+      {/* Announcement Modal */}
+      {showAnnouncementModal && announcement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full p-6 relative">
+            <button
+              onClick={handleDismissAnnouncement}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 mb-3">
+              <Megaphone className="w-5 h-5 text-[#457BF5]" />
+              <h3 className="text-xl font-semibold text-gray-900">Announcement</h3>
+            </div>
+            <p className="text-lg font-semibold text-gray-900">{announcement.title}</p>
+            <p className="mt-2 text-gray-700 whitespace-pre-line">{announcement.message}</p>
+            <p className="mt-4 text-xs text-gray-500">
+              Posted on {new Date(announcement.createdAt).toLocaleString()}
+            </p>
+            <div className="mt-6 flex justify-end">
+              <Button variant="outline" onClick={handleDismissAnnouncement}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Parental Approval Modal - shows when approval is needed */}
       {needsParentalApproval && (

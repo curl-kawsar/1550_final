@@ -634,3 +634,49 @@ export const sendParentalConfirmationEmail = async (studentData) => {
     };
   }
 };
+
+// Send announcement email to students/parents (BCC to hide recipients)
+export const sendAnnouncementEmail = async (subject, message, recipients = []) => {
+  try {
+    const transporter = createTransporter();
+
+    const uniqueRecipients = [...new Set((recipients || []).filter(Boolean))];
+    if (uniqueRecipients.length === 0) {
+      return { success: true, sent: 0, messageId: null };
+    }
+
+    // Verify configuration before sending
+    await transporter.verify();
+
+    const mailOptions = {
+      from: {
+        name: '1550+ Announcements',
+        address: emailConfig.auth.user
+      },
+      to: emailConfig.auth.user,
+      bcc: uniqueRecipients,
+      subject: subject || 'Important Announcement from 1550+',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; background: #f8fafc; color: #0f172a;">
+          <div style="background: #113076; color: #fff; padding: 18px 20px; border-radius: 12px 12px 0 0;">
+            <h2 style="margin: 0; font-size: 20px;">Announcement from 1550+</h2>
+          </div>
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
+            <h3 style="margin: 0 0 12px; font-size: 18px; color: #0f172a;">${subject || 'Announcement'}</h3>
+            <p style="margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+            <p style="margin-top: 18px; font-size: 13px; color: #64748b;">This message was sent to students and parents registered with 1550+.</p>
+          </div>
+        </div>
+      `,
+      text: `${subject || 'Announcement from 1550+'}\n\n${message}`
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Announcement email sent successfully:', result.messageId);
+
+    return { success: true, sent: uniqueRecipients.length, messageId: result.messageId };
+  } catch (error) {
+    console.error('Error sending announcement email:', error);
+    return { success: false, error: error.message };
+  }
+};
