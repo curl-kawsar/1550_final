@@ -25,12 +25,12 @@ function AdminResetPasswordContent() {
     }
   }, [token]);
 
-  const validatePassword = (pass) => {
+  const validatePassword = (pass, confirmPass) => {
     const errors = [];
     if (pass.length < 6) {
       errors.push('Password must be at least 6 characters');
     }
-    if (pass.length > 0 && confirmPassword.length > 0 && pass !== confirmPassword) {
+    if (pass.length > 0 && confirmPass.length > 0 && pass !== confirmPass) {
       errors.push('Passwords do not match');
     }
     setValidationErrors(errors);
@@ -40,24 +40,20 @@ function AdminResetPasswordContent() {
   const handlePasswordChange = (e) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
-    if (confirmPassword) {
-      validatePassword(newPassword);
-    }
+    validatePassword(newPassword, confirmPassword);
   };
 
   const handleConfirmPasswordChange = (e) => {
     const newConfirmPassword = e.target.value;
     setConfirmPassword(newConfirmPassword);
-    if (password) {
-      validatePassword(password);
-    }
+    validatePassword(password, newConfirmPassword);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!validatePassword(password)) {
+    if (!validatePassword(password, confirmPassword)) {
       return;
     }
 
