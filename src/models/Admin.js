@@ -30,6 +30,16 @@ const AdminSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
+  },
+  
+  // Password Reset
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

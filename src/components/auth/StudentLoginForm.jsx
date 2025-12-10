@@ -142,6 +142,15 @@ export default function StudentLoginForm() {
             )}
           </div>
 
+          <div className="flex items-center justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-[#457BF5] hover:text-[#3A6BF0] font-medium transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
           <Button
             type="submit"
             className="w-full bg-[#457BF5] hover:bg-[#3A6BF0] text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2"

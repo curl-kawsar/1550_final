@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -108,6 +109,15 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-end">
+                <Link
+                  href="/admin/forgot-password"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               <Button 

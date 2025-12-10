@@ -680,3 +680,198 @@ export const sendAnnouncementEmail = async (subject, message, recipients = []) =
     return { success: false, error: error.message };
   }
 };
+
+// Send Password Reset Email
+export const sendPasswordResetEmail = async (email, resetToken, userType = 'student') => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+
+    const websiteUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://www.1550plus.com';
+    const resetPath = userType === 'admin' ? '/admin/reset-password' : '/reset-password';
+    const resetUrl = `${websiteUrl}${resetPath}?token=${resetToken}`;
+
+    const mailOptions = {
+      from: {
+        name: '1550+ SAT Prep',
+        address: process.env.EMAIL_USER || 'no-reply@1550plus.com'
+      },
+      to: email,
+      subject: '🔐 Password Reset Request - 1550+',
+      html: `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Password Reset - 1550+</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              font-family: 'Arial', sans-serif;
+              line-height: 1.6;
+              background-color: #f4f4f4;
+              color: #333333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 40px auto;
+              background-color: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background: linear-gradient(135deg, #113076 0%, #1a4ba8 100%);
+              padding: 40px 30px;
+              text-align: center;
+              color: white;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 28px;
+              font-weight: 600;
+            }
+            .content {
+              padding: 40px 30px;
+            }
+            .message {
+              font-size: 16px;
+              color: #555555;
+              margin-bottom: 20px;
+              line-height: 1.8;
+            }
+            .reset-button {
+              display: block;
+              width: 200px;
+              margin: 30px auto;
+              padding: 14px 28px;
+              background-color: #113076;
+              color: white;
+              text-decoration: none;
+              text-align: center;
+              border-radius: 6px;
+              font-weight: 600;
+              font-size: 16px;
+              transition: background-color 0.3s;
+            }
+            .reset-button:hover {
+              background-color: #1a4ba8;
+            }
+            .expiry-notice {
+              background-color: #fff3cd;
+              border-left: 4px solid #ffc107;
+              padding: 15px;
+              margin: 20px 0;
+              font-size: 14px;
+              color: #856404;
+            }
+            .alternative-link {
+              margin-top: 30px;
+              padding: 20px;
+              background-color: #f8f9fa;
+              border-radius: 6px;
+              font-size: 14px;
+              color: #666;
+              word-break: break-all;
+            }
+            .alternative-link p {
+              margin: 0 0 10px 0;
+              font-weight: 600;
+              color: #333;
+            }
+            .alternative-link a {
+              color: #113076;
+              text-decoration: none;
+            }
+            .footer {
+              background-color: #f8f9fa;
+              padding: 30px;
+              text-align: center;
+              font-size: 14px;
+              color: #666666;
+              border-top: 1px solid #e5e5e5;
+            }
+            .footer p {
+              margin: 5px 0;
+            }
+            .security-notice {
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #e7f3ff;
+              border-left: 4px solid #113076;
+              font-size: 14px;
+              color: #004085;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Password Reset Request</h1>
+            </div>
+            <div class="content">
+              <p class="message">
+                Hello,
+              </p>
+              <p class="message">
+                We received a request to reset your password for your 1550+ ${userType === 'admin' ? 'Admin' : 'Student'} account. 
+                Click the button below to create a new password:
+              </p>
+              
+              <a href="${resetUrl}" class="reset-button">Reset Password</a>
+              
+              <div class="expiry-notice">
+                ⏱️ <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+              </div>
+              
+              <div class="security-notice">
+                🛡️ <strong>Security Notice:</strong> If you didn't request this password reset, 
+                please ignore this email. Your password will remain unchanged and your account is secure.
+              </div>
+              
+              <div class="alternative-link">
+                <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+              </div>
+            </div>
+            <div class="footer">
+              <p><strong>1550+ SAT Prep</strong></p>
+              <p>Helping students achieve their SAT dreams</p>
+              <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                This is an automated email. Please do not reply to this message.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        Password Reset Request - 1550+
+        
+        Hello,
+        
+        We received a request to reset your password for your 1550+ ${userType === 'admin' ? 'Admin' : 'Student'} account.
+        
+        To reset your password, please visit the following link:
+        ${resetUrl}
+        
+        This link will expire in 1 hour for security reasons.
+        
+        If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+        
+        Best regards,
+        The 1550+ Team
+      `
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return { success: false, error: error.message };
+  }
+};

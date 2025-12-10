@@ -296,6 +296,16 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'processing', 'succeeded', 'failed', 'canceled'],
     default: 'pending'
+  },
+
+  // Password Reset
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
