@@ -52,7 +52,7 @@ export async function POST(request) {
       { runValidators: false } // Skip validation for password reset
     );
 
-    // Send reset email
+    // Send reset
     const emailResult = await sendPasswordResetEmail(email, resetToken, 'admin');
 
     if (!emailResult.success) {
