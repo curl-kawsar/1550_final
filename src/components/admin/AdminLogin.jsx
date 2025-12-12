@@ -79,7 +79,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@collegemastermind.com"
+                  placeholder="Enter Your Email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   disabled={isLoading}
@@ -128,12 +128,6 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-            
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium">Default Admin Credentials:</p>
-              <p className="text-xs text-blue-600 mt-1">Email: admin@collegemastermind.com</p>
-              <p className="text-xs text-blue-600">Password: admin123</p>
-            </div>
           </CardContent>
         </Card>
       </div>

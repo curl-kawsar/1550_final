@@ -21,6 +21,7 @@ import SalesReport from '@/components/admin/SalesReport'
 import CouponManagement from '@/components/admin/CouponManagement'
 import CouponUsageHistory from '@/components/admin/CouponUsageHistory'
 import AnnouncementManagement from '@/components/admin/AnnouncementManagement'
+import AdminUserManagement from '@/components/admin/AdminUserManagement'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -100,6 +101,12 @@ export default function AdminDashboard() {
         {activeTab === 'sales' && (
           <div>
             <SalesReport />
+          </div>
+        )}
+
+        {activeTab === 'admin-users' && (
+          <div>
+            <AdminUserManagement />
           </div>
         )}
 
