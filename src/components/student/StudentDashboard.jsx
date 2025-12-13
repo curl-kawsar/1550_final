@@ -38,7 +38,8 @@ import {
   ChevronRight,
   CheckCircle2,
   Play,
-  Megaphone
+  Megaphone,
+  LogOut
 } from 'lucide-react'
 
 export default function StudentDashboard({ student, onLogout, onRefreshStudent }) {
@@ -452,19 +453,27 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
           </nav>
 
           {/* Sidebar Footer - Actions */}
-          <div className="p-4 border-t border-gray-200/60 bg-gradient-to-r from-gray-50/50 to-white space-y-4">
-            <div className="space-y-2">
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-                disabled={refreshing}
-                className="w-full flex items-center gap-2 text-xs font-medium rounded-xl border-gray-200/50 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-              >
-                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </Button>
-            </div>
+          <div className="p-4 border-t border-gray-200/60 bg-gradient-to-r from-gray-50/50 to-white space-y-2">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+              className="w-full flex items-center gap-2 text-xs font-medium rounded-xl border-gray-200/50 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              size="sm"
+              className="w-full flex items-center gap-2 text-xs font-medium rounded-xl border-red-200/50 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </div>
