@@ -693,75 +693,56 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Selected Time Slot</label>
-                    <p className="text-xl font-bold text-[#457BF5] mt-2 font-norwester">
-                      {classTimeDetails ? (
-                        `${classTimeDetails.dayOfWeek?.join(' & ') || 'Custom'} - ${formatTime(classTimeDetails.startTime)} to ${formatTime(classTimeDetails.endTime)} ${classTimeDetails.timezone}`
-                      ) : (
-                        student.classTime || 'Not yet assigned'
-                      )}
-                    </p>
-                  </div>
                   {loadingClassDetails ? (
                     <div className="animate-pulse">
                       <div className="h-32 bg-gray-200 rounded-2xl"></div>
                     </div>
                   ) : classTimeDetails ? (
-                    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200/50">
-                      <h4 className="text-sm font-bold text-gray-800 mb-4 font-norwester uppercase tracking-wide">Class Details</h4>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex items-center">
-                          <span className="w-2 h-2 bg-blue-600 rounded-full mr-4"></span>
-                          <span className="font-semibold text-blue-600 uppercase tracking-wide">
-                            Days: {classTimeDetails.dayOfWeek?.join(', ') || 'Custom Schedule'}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="w-2 h-2 bg-blue-600 rounded-full mr-4"></span>
-                          <span className="font-semibold text-blue-600 uppercase tracking-wide">
-                            Time: {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          {/* <span className="w-2 h-2 bg-blue-600 rounded-full mr-4"></span>
-                          <span className="font-semibold text-blue-600 uppercase tracking-wide">
-                            Capacity: {classTimeDetails.currentEnrollment || 0}/{classTimeDetails.capacity || 50} Students
-                          </span> */}
-                        </div>
-                        {classTimeDetails.description && (
-                          <div className="flex items-start">
-                            <span className="w-2 h-2 bg-blue-600 rounded-full mr-4 mt-2"></span>
-                            <span className="font-semibold text-blue-600 uppercase tracking-wide">
-                              {classTimeDetails.description}
-                            </span>
-                          </div>
-                        )}
+                    <div className="space-y-4">
+                      {/* Selected Time Slot */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Selected Time Slot</label>
+                        <p className="text-xl font-bold text-[#457BF5] mt-2 font-norwester">
+                          {classTimeDetails.dayOfWeek?.join(' & ') || 'Custom'}
+                        </p>
                       </div>
                       
-                      <div className="mt-6 pt-6 border-t border-gray-300">
-                        <div className="space-y-4 text-sm">
-                          <div>
-                            <div className="font-bold text-gray-700 mb-2">Meeting Link:</div>
-                            <a 
-                              href="https://us02web.zoom.us/j/8980721475" 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 underline break-all font-medium"
-                            >
-                              https://us02web.zoom.us/j/8980721475
-                            </a>
+                      {/* Days */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Days</label>
+                        <p className="text-lg font-bold text-gray-900 mt-2">
+                          {classTimeDetails.dayOfWeek?.join(', ') || 'Custom Schedule'}
+                        </p>
+                      </div>
+                      
+                      {/* Time */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Time</label>
+                        <p className="text-lg font-bold text-gray-900 mt-2">
+                          {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
+                        </p>
+                      </div>
+                      
+                      {/* Meeting Link */}
+                      <div className="pt-4 border-t border-gray-200">
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2 block">Meeting Link:</label>
+                        <a 
+                          href="https://us02web.zoom.us/j/8980721475" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-700 underline break-all font-medium text-base"
+                        >
+                          https://us02web.zoom.us/j/8980721475
+                        </a>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div className="p-3 bg-green-50 rounded-xl border border-green-200/50">
+                            <div className="font-bold text-gray-700 mb-1">Online Session:</div>
+                            <div className="text-green-600 font-bold">Room 17</div>
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-3 bg-white rounded-xl border border-blue-200/50">
-                              <div className="font-bold text-gray-700 mb-1">Online Session:</div>
-                              <div className="text-blue-600 font-bold">Room 17</div>
-                            </div>
-                            <div className="p-3 bg-white rounded-xl border border-blue-200/50">
-                              <div className="font-bold text-gray-700 mb-1">Office Hours:</div>
-                              <div className="text-blue-600 font-bold">Room 18</div>
-                            </div>
+                          <div className="p-3 bg-green-50 rounded-xl border border-green-200/50">
+                            <div className="font-bold text-gray-700 mb-1">Office Hours:</div>
+                            <div className="text-green-600 font-bold">Room 18</div>
                           </div>
                         </div>
                       </div>
@@ -798,61 +779,44 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Test Date</label>
-                    <p className="text-xl font-bold text-green-600 mt-2 font-norwester">
-                      {diagnosticTestDetails ? (
-                        `${formatDiagnosticDate(diagnosticTestDetails.date)} - ${formatTime(diagnosticTestDetails.startTime)} to ${formatTime(diagnosticTestDetails.endTime)} ${diagnosticTestDetails.timezone}`
-                      ) : (
-                        student.diagnosticTestDate || 'Not scheduled'
-                      )}
-                    </p>
-                  </div>
                   {loadingDiagnosticDetails ? (
                     <div className="animate-pulse">
                       <div className="h-32 bg-gray-200 rounded-2xl"></div>
                     </div>
                   ) : diagnosticTestDetails ? (
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50/50 p-6 rounded-2xl border border-green-200/50">
-                      <h4 className="font-bold text-green-900 mb-3 font-norwester">Test Information</h4>
-                      <ul className="text-sm text-green-800 space-y-2">
-                        <li className="flex items-center">
-                          <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
-                          <span className="font-medium">
-                            Date: {formatDiagnosticDate(diagnosticTestDetails.date)}
-                          </span>
-                        </li>
-                        <li className="flex items-center">
-                          <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
-                          <span className="font-medium">
-                            Time: {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
-                          </span>
-                        </li>
-                        {diagnosticTestDetails.duration && (
-                          <li className="flex items-center">
-                            <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
-                            <span className="font-medium">Duration: {diagnosticTestDetails.duration}</span>
-                          </li>
-                        )}
-                        {diagnosticTestDetails.location && (
-                          <li className="flex items-center">
-                            <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
-                            <span className="font-medium">Location: {diagnosticTestDetails.location}</span>
-                          </li>
-                        )}
-                        {/* <li className="flex items-center">
-                          <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
-                          <span className="font-medium">
-                            Capacity: {diagnosticTestDetails.currentEnrollment || 0}/{diagnosticTestDetails.capacity || 50} Students
-                          </span>
-                        </li> */}
-                        {diagnosticTestDetails.description && (
-                          <li className="flex items-start">
-                            <span className="w-2 h-2 bg-green-600 rounded-full mr-3 mt-2"></span>
-                            <span className="font-medium">{diagnosticTestDetails.description}</span>
-                          </li>
-                        )}
-                      </ul>
+                    <div className="space-y-4">
+                      {/* Test Date */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Test Date</label>
+                        <p className="text-xl font-bold text-green-600 mt-2 font-norwester">
+                          {formatDiagnosticDate(diagnosticTestDetails.date)}
+                        </p>
+                      </div>
+                      
+                      {/* Days */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Days</label>
+                        <p className="text-lg font-bold text-gray-900 mt-2">
+                          {new Date(diagnosticTestDetails.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                        </p>
+                      </div>
+                      
+                      {/* Time */}
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Time</label>
+                        <p className="text-lg font-bold text-gray-900 mt-2">
+                          {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
+                        </p>
+                      </div>
+                      
+                      {diagnosticTestDetails.location && (
+                        <div className="pt-4 border-t border-gray-200">
+                          <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Location</label>
+                          <p className="text-lg font-bold text-gray-900 mt-2">
+                            {diagnosticTestDetails.location}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : student.diagnosticTestDate && (
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50/50 p-6 rounded-2xl border border-green-200/50">
@@ -901,7 +865,7 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Graduation Year</label>
-                    <p className="text-lg font-semibold mt-1">{formatDate(student.graduationYear)}</p>
+                    <p className="text-lg font-semibold mt-1">{student.graduationYear || 'N/A'}</p>
                   </div>
                 </div>
                 <div>

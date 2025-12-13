@@ -331,6 +331,8 @@ const AssignmentResultCard = ({ assignment, onViewDetails }) => {
 
 // Assignment Details Modal Component
 const AssignmentDetailsModal = ({ assignment, onClose, onViewSubmission }) => {
+  const [sortBy, setSortBy] = useState('highest') // 'highest', 'lowest', 'alphabetical'
+  
   const { data: results, isLoading } = useQuery({
     queryKey: ['assignment-details', assignment._id],
     queryFn: async () => {
@@ -343,7 +345,21 @@ const AssignmentDetailsModal = ({ assignment, onClose, onViewSubmission }) => {
   })
 
   const stats = results?.statistics || {}
-  const submissions = results?.results || []
+  const allSubmissions = results?.results || []
+  
+  // Sort submissions based on selected filter
+  const submissions = [...allSubmissions].sort((a, b) => {
+    if (sortBy === 'highest') {
+      return b.percentage - a.percentage // Highest to lowest
+    } else if (sortBy === 'lowest') {
+      return a.percentage - b.percentage // Lowest to highest
+    } else if (sortBy === 'alphabetical') {
+      const nameA = `${a.studentId?.firstName} ${a.studentId?.lastName}`.toLowerCase()
+      const nameB = `${b.studentId?.firstName} ${b.studentId?.lastName}`.toLowerCase()
+      return nameA.localeCompare(nameB)
+    }
+    return 0
+  })
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60)
@@ -444,7 +460,21 @@ const AssignmentDetailsModal = ({ assignment, onClose, onViewSubmission }) => {
 
               {/* Student Submissions */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Submissions</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Student Submissions</h3>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Sort by:</label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="border border-[#457BF5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#457BF5] focus:border-[#457BF5]"
+                    >
+                      <option value="highest">Highest Score</option>
+                      <option value="lowest">Lowest Score</option>
+                      <option value="alphabetical">Alphabetical</option>
+                    </select>
+                  </div>
+                </div>
                 
                 {submissions.length === 0 ? (
                   <Card>

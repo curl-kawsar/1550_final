@@ -11,8 +11,8 @@ export default function LayoutContent({ children }) {
   const router = useRouter();
   const { data: maintenanceStatus } = useMaintenanceStatus();
   
-  // Hide navbar and footer on registration page, admin panel, and maintenance page
-  const hideNavbarAndFooter = pathname === "/register" || pathname.startsWith("/admin") || pathname === "/maintenance";
+  // Hide navbar and footer on registration page, admin panel, student dashboard, and maintenance page
+  const hideNavbarAndFooter = pathname === "/register" || pathname.startsWith("/admin") || pathname === "/student-dashboard" || pathname === "/maintenance";
 
   // Check for maintenance mode and redirect
   useEffect(() => {

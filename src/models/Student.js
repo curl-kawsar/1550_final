@@ -25,8 +25,10 @@ const StudentSchema = new mongoose.Schema({
     minlength: 6
   },
   graduationYear: {
-    type: Date,
-    required: true
+    type: Number,
+    required: true,
+    min: 2010,
+    max: 2035
   },
   highSchoolName: {
     type: String,

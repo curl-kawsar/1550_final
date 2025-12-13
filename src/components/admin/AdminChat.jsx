@@ -8,6 +8,39 @@ import { Badge } from '@/components/ui/badge';
 import { Send, MessageCircle, User, ArrowLeft, Clock, RefreshCw } from 'lucide-react';
 import { useChatConversations, useChatMessages, useSendMessage, useMarkAsRead } from '@/hooks/useChat';
 
+// Custom scrollbar styles - HIGHLY VISIBLE
+const scrollbarStyles = `
+  .custom-scrollbar {
+    scrollbar-width: auto !important;
+    scrollbar-color: #475569 #CBD5E1 !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #CBD5E1 !important;
+    border-radius: 8px !important;
+    border: 1px solid #94A3B8 !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #475569 !important;
+    border-radius: 8px !important;
+    border: 3px solid #CBD5E1 !important;
+    min-height: 40px !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #334155 !important;
+    border: 3px solid #CBD5E1 !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: #1E293B !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: #CBD5E1 !important;
+  }
+`;
+
 export default function AdminChat() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [message, setMessage] = useState('');
@@ -118,8 +151,10 @@ export default function AdminChat() {
   const totalUnreadMessages = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-200px)] sm:max-h-[600px] bg-white rounded-lg shadow-sm border">
-      {/* Header */}
+    <>
+      <style>{scrollbarStyles}</style>
+      <div className="flex flex-col h-full max-h-[calc(100vh-200px)] sm:max-h-[600px] bg-white rounded-lg shadow-sm border">
+        {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -165,7 +200,15 @@ export default function AdminChat() {
       <div className="flex-1 overflow-hidden">
         {!selectedConversation ? (
           // Conversations List
-          <div className="h-full overflow-y-auto">
+          <div 
+            className="h-full overflow-y-scroll custom-scrollbar"
+            style={{
+              scrollbarWidth: 'auto',
+              scrollbarColor: '#475569 #CBD5E1',
+              scrollbarGutter: 'stable',
+              overflowY: 'scroll'
+            }}
+          >
             {conversationsLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -237,7 +280,15 @@ export default function AdminChat() {
           // Selected Conversation
           <div className="flex flex-col h-full">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-50 min-h-0">
+            <div 
+              className="flex-1 overflow-y-scroll p-3 sm:p-4 bg-gray-50 min-h-0 custom-scrollbar"
+              style={{
+                scrollbarWidth: 'auto',
+                scrollbarColor: '#475569 #CBD5E1',
+                scrollbarGutter: 'stable',
+                overflowY: 'scroll'
+              }}
+            >
               {messagesLoading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -333,5 +384,6 @@ export default function AdminChat() {
         )}
       </div>
     </div>
+    </>
   );
 }

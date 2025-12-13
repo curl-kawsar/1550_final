@@ -432,7 +432,7 @@ const InteractiveRegistrationForm = () => {
               <div>
                 <Label className="text-sm font-medium text-gray-700">Graduation Year *</Label>
                 <div className="mt-2">
-                  {renderInputField('graduationYear', '01/01/2000', 'date')}
+                  {renderInputField('graduationYear', '2025', 'number')}
                 </div>
               </div>
 
