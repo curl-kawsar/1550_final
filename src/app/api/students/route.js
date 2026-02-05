@@ -9,17 +9,17 @@ import { createTraffTCustomer } from '@/services/trafftService';
 export async function POST(request) {
   try {
     await connectToDatabase();
-    
+
     const body = await request.json();
-    
+
     // Validate required fields
     const requiredFields = [
-      'firstName', 'lastName', 'email', 'password', 'graduationYear', 'highSchoolName', 
-      'phoneNumber', 'gender', 'currentGPA', 'parentFirstName', 'parentLastName', 
-      'parentEmail', 'parentPhoneNumber', 'state', 'classRigor', 'universitiesWant', 
+      'firstName', 'lastName', 'email', 'password', 'graduationYear', 'highSchoolName',
+      'phoneNumber', 'gender', 'currentGPA', 'parentFirstName', 'parentLastName',
+      'parentEmail', 'parentPhoneNumber', 'state', 'classRigor', 'universitiesWant',
       'typeOfStudent', 'registrationCode', 'classTime', 'diagnosticTestDate'
     ];
-    
+
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request) {
         );
       }
     }
-    
+
     // Check if email already exists
     const existingStudent = await Student.findOne({ email: body.email });
     if (existingStudent) {
@@ -37,15 +37,15 @@ export async function POST(request) {
         { status: 409 }
       );
     }
-    
+
     // Check if registration code belongs to an ambassador
     let assignedAmbassador = null;
     if (body.registrationCode) {
-      const ambassador = await Ambassador.findOne({ 
+      const ambassador = await Ambassador.findOne({
         ambassadorCode: body.registrationCode.toUpperCase(),
-        isActive: true 
+        isActive: true
       });
-      
+
       if (ambassador) {
         assignedAmbassador = ambassador._id;
         console.log('Student will be assigned to ambassador:', ambassador.firstName, ambassador.lastName);
@@ -53,27 +53,37 @@ export async function POST(request) {
         console.log('Registration code does not match any active ambassador:', body.registrationCode);
       }
     }
-    
+
     // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(body.password, saltRounds);
-    
+
+    // Parse graduationYear - handle ISO date string or plain year number
+    let graduationYear = body.graduationYear;
+    if (typeof graduationYear === 'string' && graduationYear.includes('-')) {
+      // Extract year from ISO date string like "2025-01-01T00:00:00.000Z"
+      graduationYear = new Date(graduationYear).getFullYear();
+    } else if (typeof graduationYear === 'string') {
+      graduationYear = parseInt(graduationYear, 10);
+    }
+
     // Create new student with hashed password and ambassador assignment
     const studentData = {
       ...body,
       password: hashedPassword,
-      ambassador: assignedAmbassador
+      ambassador: assignedAmbassador,
+      graduationYear: graduationYear
     };
-    
+
     console.log('Creating student with data:', {
       email: studentData.email,
       hasPassword: !!studentData.password,
       passwordLength: studentData.password ? studentData.password.length : 0
     });
-    
+
     const student = new Student(studentData);
     await student.save();
-    
+
     console.log('Student saved successfully:', {
       id: student._id,
       email: student.email,
@@ -98,7 +108,7 @@ export async function POST(request) {
     // Create customer in Trafft platform
     try {
       console.log('Creating Trafft customer for:', student.email);
-      
+
       const trafftResult = await createTraffTCustomer({
         firstName: student.firstName,
         lastName: student.lastName,
@@ -123,27 +133,27 @@ export async function POST(request) {
       }
     } catch (trafftError) {
       console.error('Error in Trafft integration:', trafftError);
-      
+
       // Update student with error info
       await Student.findByIdAndUpdate(student._id, {
         trafftCustomerCreated: false,
         trafftError: trafftError.message
       });
-      
+
       // Note: We don't fail the registration if Trafft fails
     }
 
     // Send parental confirmation email
     try {
       const emailResult = await sendParentalConfirmationEmail(student);
-      
+
       if (emailResult.success) {
         // Update student with approval token
         await Student.findByIdAndUpdate(student._id, {
           parentalApprovalToken: emailResult.approvalToken,
           parentalApprovalEmailSent: true
         });
-        
+
         console.log('Parental confirmation email sent successfully:', emailResult.messageId);
       } else {
         console.error('Failed to send parental confirmation email:', emailResult.error);
@@ -153,25 +163,25 @@ export async function POST(request) {
       console.error('Error sending parental confirmation email:', emailError);
       // Note: We don't fail the registration if email fails
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         message: 'Student registration submitted successfully. A parental confirmation email has been sent.',
-        studentId: student._id 
+        studentId: student._id
       },
       { status: 201 }
     );
-    
+
   } catch (error) {
     console.error('Error creating student:', error);
-    
+
     if (error.code === 11000) {
       return NextResponse.json(
         { error: 'A student with this email already exists' },
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -182,7 +192,7 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     await connectToDatabase();
-    
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 10;
@@ -190,9 +200,9 @@ export async function GET(request) {
     const search = searchParams.get('search');
     const diagnosticTest = searchParams.get('diagnosticTest');
     const classTime = searchParams.get('classTime');
-    
+
     const skip = (page - 1) * limit;
-    
+
     // Build query
     let query = {};
     if (status) {
@@ -218,17 +228,17 @@ export async function GET(request) {
     if (classTime) {
       query.classTime = classTime;
     }
-    
+
     // Get students with pagination
     const students = await Student.find(query)
       .sort({ submittedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
-    
+
     // Get total count for pagination
     const total = await Student.countDocuments(query);
-    
+
     return NextResponse.json({
       students,
       pagination: {
@@ -239,7 +249,7 @@ export async function GET(request) {
         hasPrev: page > 1
       }
     });
-    
+
   } catch (error) {
     console.error('Error fetching students:', error);
     return NextResponse.json(
