@@ -19,14 +19,37 @@ export async function POST(request) {
       return NextResponse.json({ success: false, errors: ['File must be a CSV file'] }, { status: 400 });
     }
 
+    if (typeof file.size === 'number' && file.size === 0) {
+      return NextResponse.json(
+        { success: false, errors: ['The file is empty (0 bytes). Save the spreadsheet as CSV again or use Download CSV template.'] },
+        { status: 400 }
+      );
+    }
+
     const text = await file.text();
-    const { rows, missingRequired, rawHeaderCells } = parseDistrictNomineeCsv(text);
+    if (!text || !String(text).trim()) {
+      return NextResponse.json(
+        { success: false, errors: ['No readable text in file. Export as CSV (UTF-8) from Excel or Google Sheets, not HTML or XLSX.'] },
+        { status: 400 }
+      );
+    }
+
+    const { rows, missingRequired, rawHeaderCells, fileEmpty } = parseDistrictNomineeCsv(text);
+
+    if (fileEmpty) {
+      return NextResponse.json({
+        success: false,
+        errors: [
+          'The CSV has no non-blank lines. Open the file in a text editor: you should see a header row (column names) and at least one data row below it.'
+        ]
+      }, { status: 400 });
+    }
 
     if (missingRequired.length > 0) {
       const found =
         rawHeaderCells.length > 0
           ? rawHeaderCells.map((h) => `"${h}"`).join(', ')
-          : '(empty header row)';
+          : '(could not read any columns from the first line — check delimiter and quotes)';
       return NextResponse.json({
         success: false,
         errors: [

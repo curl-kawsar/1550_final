@@ -124,17 +124,24 @@ export function parseCsvLine(line, delimiter) {
 
 /**
  * @param {string} text - full file contents
- * @returns {{ headersCanonical: string[], rows: Record<string,string>[], missingRequired: string[], rawHeaderCells: string[] }}
+ * @returns {{ headersCanonical: string[], rows: Record<string,string>[], missingRequired: string[], rawHeaderCells: string[], fileEmpty?: boolean }}
  */
+export function normalizeCsvNewlines(text) {
+  if (text == null) return '';
+  return String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
 export function parseDistrictNomineeCsv(text) {
-  const body = stripBom(text);
-  const lines = body.split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) {
+  const body = stripBom(normalizeCsvNewlines(text));
+  const lines = body.split('\n').map((l) => l.trimEnd()).filter((l) => l.trim().length > 0);
+
+  if (lines.length === 0) {
     return {
       headersCanonical: [],
       rows: [],
       missingRequired: [...DISTRICT_CSV_REQUIRED],
-      rawHeaderCells: []
+      rawHeaderCells: [],
+      fileEmpty: true
     };
   }
 
@@ -149,6 +156,7 @@ export function parseDistrictNomineeCsv(text) {
   const missingRequired = DISTRICT_CSV_REQUIRED.filter((h) => !presentCanonical.has(h));
 
   const rows = [];
+  // Header-only CSV is valid for column check; data rows start at line 2 when present
   for (let li = 1; li < lines.length; li++) {
     const cells = parseCsvLine(lines[li], delimiter);
     if (!cells.some((c) => String(c).trim())) continue;
