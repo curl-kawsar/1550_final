@@ -1,50 +1,8 @@
 import { NextResponse } from 'next/server';
-
-const REQUIRED_HEADERS = [
-  'Student First Name',
-  'Student Last Name',
-  'Grade Level or Graduation Year',
-  'Parent First Name',
-  'Parent Last Name',
-  'Parent Email'
-];
+import { parseDistrictNomineeCsv } from '@/lib/districtCsvParse';
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function parseCSV(text) {
-  const lines = text.split(/\r?\n/).filter(line => line.trim());
-  if (lines.length < 2) return { headers: [], rows: [] };
-
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const values = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (const char of lines[i]) {
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        values.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    values.push(current.trim());
-
-    if (values.some(v => v)) {
-      const row = {};
-      headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
-      rows.push(row);
-    }
-  }
-
-  return { headers, rows };
 }
 
 export async function POST(request) {
@@ -57,19 +15,25 @@ export async function POST(request) {
     }
 
     const fileName = file.name || '';
-    if (!fileName.endsWith('.csv')) {
+    if (!fileName.toLowerCase().endsWith('.csv')) {
       return NextResponse.json({ success: false, errors: ['File must be a CSV file'] }, { status: 400 });
     }
 
     const text = await file.text();
-    const { headers, rows } = parseCSV(text);
+    const { rows, missingRequired, rawHeaderCells } = parseDistrictNomineeCsv(text);
 
-    // Validate column structure
-    const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.includes(h));
-    if (missingHeaders.length > 0) {
+    if (missingRequired.length > 0) {
+      const found =
+        rawHeaderCells.length > 0
+          ? rawHeaderCells.map((h) => `"${h}"`).join(', ')
+          : '(empty header row)';
       return NextResponse.json({
         success: false,
-        errors: [`Missing required columns: ${missingHeaders.join(', ')}`]
+        errors: [
+          `Missing required columns: ${missingRequired.join(', ')}. ` +
+            `Found in file: ${found}. ` +
+            `Download the template from this site or use the exact column names (comma, semicolon, or tab-separated).`
+        ]
       }, { status: 400 });
     }
 
@@ -108,9 +72,13 @@ export async function POST(request) {
           rowNumber: index + 2,
           errors,
           data: {
-            firstName, lastName, grade,
+            firstName,
+            lastName,
+            grade,
             highSchoolName: row['High School Name']?.trim() || '',
-            parentFirstName, parentLastName, parentEmail
+            parentFirstName,
+            parentLastName,
+            parentEmail
           }
         });
       } else {

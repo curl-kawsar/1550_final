@@ -11,7 +11,8 @@ const CSV_HEADERS = [
 ];
 
 export async function GET() {
-  const csvContent = CSV_HEADERS.join(',') + '\n';
+  // UTF-8 BOM helps Excel open the file with correct encoding for headers
+  const csvContent = '\uFEFF' + CSV_HEADERS.join(',') + '\n';
 
   return new NextResponse(csvContent, {
     status: 200,
