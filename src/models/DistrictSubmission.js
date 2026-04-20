@@ -85,7 +85,6 @@ const DistrictSubmissionSchema = new mongoose.Schema({
 });
 
 DistrictSubmissionSchema.index({ districtName: 1, schoolName: 1 }, { unique: true });
-DistrictSubmissionSchema.index({ registrationCode: 1 });
 DistrictSubmissionSchema.index({ status: 1 });
 DistrictSubmissionSchema.index({ createdAt: -1 });
 
