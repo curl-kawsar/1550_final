@@ -6,6 +6,7 @@ import {usePathname} from 'next/navigation';
 import {Menu, X, LogOut, LayoutDashboard} from 'lucide-react';
 import {useState, useEffect} from 'react';
 import {useCurrentStudent, useStudentLogout} from '@/hooks/useStudentAuth';
+import Image from 'next/image';
 
 const Navbar = () => {
   useEffect(() => {
@@ -41,10 +42,12 @@ const Navbar = () => {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
-            <img
+            <Image
               src="/logo.png"
               alt="1550+ Logo"
               className="h-12 w-auto"
+              width={100}
+              height={100}
             />
           </Link>
         </div>
