@@ -22,6 +22,8 @@ import CouponManagement from '@/components/admin/CouponManagement'
 import CouponUsageHistory from '@/components/admin/CouponUsageHistory'
 import AnnouncementManagement from '@/components/admin/AnnouncementManagement'
 import AdminUserManagement from '@/components/admin/AdminUserManagement'
+import DistrictManagement from '@/components/admin/district/DistrictManagement'
+import DistrictTemplateManagement from '@/components/admin/district/DistrictTemplateManagement'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -137,6 +139,30 @@ export default function AdminDashboard() {
         {activeTab === 'assignment-results' && (
           <div>
             <AssignmentResults />
+          </div>
+        )}
+
+        {activeTab === 'districts' && (
+          <div>
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">District Submissions</h2>
+              <p className="mt-2 text-gray-600">
+                Manage district scholarship registrations and student nominees.
+              </p>
+            </div>
+            <DistrictManagement />
+          </div>
+        )}
+
+        {activeTab === 'district-templates' && (
+          <div>
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">District Email Templates</h2>
+              <p className="mt-2 text-gray-600">
+                Manage invitation email templates for district scholarship programs.
+              </p>
+            </div>
+            <DistrictTemplateManagement />
           </div>
         )}
 

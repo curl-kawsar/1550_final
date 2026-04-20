@@ -42,13 +42,13 @@ export default function Hero() {
               </p>
             </div>
 
-            <button
-              type="button"
+            <a
+              href="/district/register?district=District"
               className="inline-flex items-center gap-2 rounded-xl bg-[#004eff] px-5 py-2.5 text-sm font-semibold text-white shadow-[inset_0_-2px_0_rgba(0,0,0,0.24)] transition hover:bg-[#0e5dff]"
             >
               Reserve Your Spots
               <span aria-hidden="true">›</span>
-            </button>
+            </a>
 
         
           </div>

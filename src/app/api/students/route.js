@@ -40,6 +40,9 @@ export async function POST(request) {
 
     // Check if registration code belongs to an ambassador
     let assignedAmbassador = null;
+    let districtSubmissionId = null;
+    let districtOriginTagValue = null;
+
     if (body.registrationCode) {
       const ambassador = await Ambassador.findOne({
         ambassadorCode: body.registrationCode.toUpperCase(),
@@ -51,6 +54,30 @@ export async function POST(request) {
         console.log('Student will be assigned to ambassador:', ambassador.firstName, ambassador.lastName);
       } else {
         console.log('Registration code does not match any active ambassador:', body.registrationCode);
+      }
+
+      // Check if registration code matches a district submission
+      try {
+        const trackResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3000'}/api/district/track-registration`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              registrationCode: body.registrationCode,
+              studentEmail: body.parentEmail || body.email,
+              studentName: `${body.firstName} ${body.lastName}`
+            })
+          }
+        );
+        const trackResult = await trackResponse.json();
+        if (trackResult.isDistrict) {
+          districtSubmissionId = trackResult.submissionId;
+          districtOriginTagValue = trackResult.districtName;
+          console.log('Student matched to district:', trackResult.districtName);
+        }
+      } catch (trackError) {
+        console.error('District tracking check failed (non-blocking):', trackError);
       }
     }
 
@@ -72,7 +99,9 @@ export async function POST(request) {
       ...body,
       password: hashedPassword,
       ambassador: assignedAmbassador,
-      graduationYear: graduationYear
+      graduationYear: graduationYear,
+      ...(districtSubmissionId && { districtSubmission: districtSubmissionId }),
+      ...(districtOriginTagValue && { districtOriginTag: districtOriginTagValue })
     };
 
     console.log('Creating student with data:', {

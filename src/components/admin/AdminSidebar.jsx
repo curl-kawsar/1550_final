@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign, Percent, Receipt, Megaphone, Shield } from "lucide-react"
+import { BarChart3, Users, MessageCircle, Calendar, ClipboardCheck, Wrench, LogOut, Menu, X, MessageSquare, UserCheck, CalendarCheck, FileText, ChevronDown, ChevronRight, Trophy, Play, DollarSign, Percent, Receipt, Megaphone, Shield, Building2, Mail } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -12,6 +12,9 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
   )
   const [couponsDropdownOpen, setCouponsDropdownOpen] = useState(
     activeTab === 'coupons' || activeTab === 'coupon-usage'
+  )
+  const [districtsDropdownOpen, setDistrictsDropdownOpen] = useState(
+    activeTab === 'districts' || activeTab === 'district-templates'
   )
 
   const navigation = [
@@ -38,6 +41,16 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
       subItems: [
         { id: 'assignments', label: 'Assignment Management', icon: FileText },
         { id: 'assignment-results', label: 'Results', icon: Trophy }
+      ]
+    },
+    {
+      id: 'districts',
+      label: 'Districts',
+      icon: Building2,
+      hasDropdown: true,
+      subItems: [
+        { id: 'districts', label: 'District Submissions', icon: Building2 },
+        { id: 'district-templates', label: 'Email Templates', icon: Mail }
       ]
     },
     { id: 'class-times', label: 'Class Times', icon: Calendar },
@@ -88,6 +101,11 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
     if (tabId === 'coupons' || tabId === 'coupon-usage') {
       setCouponsDropdownOpen(true)
     }
+
+    // Keep districts dropdown open if a district-related tab is selected
+    if (tabId === 'districts' || tabId === 'district-templates') {
+      setDistrictsDropdownOpen(true)
+    }
   }
 
   const handleAssignmentsDropdownToggle = () => {
@@ -96,6 +114,10 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
 
   const handleCouponsDropdownToggle = () => {
     setCouponsDropdownOpen(!couponsDropdownOpen)
+  }
+
+  const handleDistrictsDropdownToggle = () => {
+    setDistrictsDropdownOpen(!districtsDropdownOpen)
   }
 
   return (
@@ -161,9 +183,11 @@ const AdminSidebar = ({ activeTab, setActiveTab, admin, onLogout }) => {
             
             if (item.hasDropdown) {
               const isDropdownOpen = item.id === 'assignments' ? assignmentsDropdownOpen : 
-                                   item.id === 'coupons' ? couponsDropdownOpen : false
+                                   item.id === 'coupons' ? couponsDropdownOpen :
+                                   item.id === 'districts' ? districtsDropdownOpen : false
               const handleDropdownToggle = item.id === 'assignments' ? handleAssignmentsDropdownToggle : 
-                                         item.id === 'coupons' ? handleCouponsDropdownToggle : () => {}
+                                         item.id === 'coupons' ? handleCouponsDropdownToggle :
+                                         item.id === 'districts' ? handleDistrictsDropdownToggle : () => {}
               
               return (
                 <div key={item.id}>

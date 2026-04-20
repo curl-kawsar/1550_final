@@ -70,13 +70,13 @@ export default function NextStepsSection() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <button
-            type="button"
+          <a
+            href="/district/register?district=District"
             className="inline-flex items-center gap-2 rounded-xl bg-[#004eff] px-6 py-3 text-sm font-semibold text-white shadow-[inset_0_-2px_0_rgba(0,0,0,0.25)] transition hover:bg-[#0e5dff]"
           >
             Reserve Your Spots
             <span aria-hidden="true">›</span>
-          </button>
+          </a>
         </div>
 
         <div className="mx-auto mt-8 max-w-2xl rounded-2xl bg-[#141c42] p-5 text-white">

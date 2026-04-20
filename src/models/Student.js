@@ -308,6 +308,17 @@ const StudentSchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
     default: null
+  },
+
+  // District Origin Tracking
+  districtOriginTag: {
+    type: String,
+    default: null
+  },
+  districtSubmission: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DistrictSubmission',
+    default: null
   }
 }, {
   timestamps: true

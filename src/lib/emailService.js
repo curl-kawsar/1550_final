@@ -681,6 +681,45 @@ export const sendAnnouncementEmail = async (subject, message, recipients = []) =
   }
 };
 
+// Send district package email to representative with ZIP attachment
+export const sendDistrictPackage = async (recipientEmail, representativeName, summaryHtml, zipBuffer, districtName) => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+
+    const mailOptions = {
+      from: {
+        name: '1550+ District Scholarship',
+        address: process.env.EMAIL_USER || 'no-reply@1550plus.com'
+      },
+      to: recipientEmail,
+      subject: `1550+ District Scholarship - Student Registration Emails for ${districtName}`,
+      html: summaryHtml,
+      text: `Dear ${representativeName}, please find the attached student registration emails for the ${districtName} district scholarship program. - The 1550+ Team`,
+      attachments: [
+        {
+          filename: `${districtName.replace(/[^a-zA-Z0-9]/g, '_')}_student_emails.zip`,
+          content: zipBuffer,
+          contentType: 'application/zip'
+        }
+      ],
+      headers: {
+        'X-Priority': '3',
+        'X-Mailer': '1550+ District Scholarship System',
+        'Reply-To': 'support@1550plus.com'
+      }
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('District package email sent successfully:', result.messageId);
+
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    console.error('Error sending district package email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Send Password Reset Email
 export const sendPasswordResetEmail = async (email, resetToken, userType = 'student') => {
   try {
