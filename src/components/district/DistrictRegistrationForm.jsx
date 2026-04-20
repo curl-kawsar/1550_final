@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,8 @@ export default function DistrictRegistrationForm() {
   const [csvFile, setCsvFile] = useState(null)
   const [csvValidation, setCsvValidation] = useState(null)
   const [validatingCsv, setValidatingCsv] = useState(false)
+  const [csvDragActive, setCsvDragActive] = useState(false)
+  const csvInputRef = useRef(null)
 
   useEffect(() => {
     if (entryMethod === 'manual') {
@@ -99,14 +101,47 @@ export default function DistrictRegistrationForm() {
   const handleNext = () => {
     if (step === 1 && !validateStep1()) return
     if (step === 2 && !validateStep2()) return
-    setStep(prev => Math.min(prev + 1, 5))
+    if (step === 3 && entryMethod === 'csv') {
+      const n = csvValidation?.validCount ?? 0
+      if (n < 10) {
+        toast.error('Upload a CSV with at least 10 valid rows before continuing. Use the template if needed.')
+        return
+      }
+    }
+    if (step === 4 && entryMethod === 'csv') {
+      const n = csvValidation?.validCount ?? 0
+      if (n < 10) {
+        toast.error('Your CSV must have at least 10 valid student rows.')
+        return
+      }
+    }
+    if (step === 4 && entryMethod === 'manual') {
+      const filled = students.filter(
+        (s) =>
+          s.firstName?.trim() &&
+          s.lastName?.trim() &&
+          s.grade?.trim() &&
+          s.parentFirstName?.trim() &&
+          s.parentLastName?.trim() &&
+          s.parentEmail?.trim()
+      )
+      if (filled.length < 10) {
+        toast.error(`Complete at least 10 student rows (all required fields). Currently ${filled.length} complete.`)
+        return
+      }
+    }
+    setStep((prev) => Math.min(prev + 1, 5))
   }
 
   const handleBack = () => setStep(prev => Math.max(prev - 1, 1))
 
-  const handleCsvUpload = async (e) => {
-    const file = e.target.files?.[0]
+  const processCsvFile = useCallback(async (file) => {
     if (!file) return
+    const name = file.name || ''
+    if (!name.toLowerCase().endsWith('.csv')) {
+      toast.error('Please choose a file ending in .csv')
+      return
+    }
     setCsvFile(file)
     setCsvValidation(null)
     setValidatingCsv(true)
@@ -137,6 +172,151 @@ export default function DistrictRegistrationForm() {
     } finally {
       setValidatingCsv(false)
     }
+  }, [])
+
+  const handleCsvInputChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) processCsvFile(file)
+    e.target.value = ''
+  }
+
+  const handleCsvDrop = (e) => {
+    e.preventDefault()
+    setCsvDragActive(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) processCsvFile(file)
+  }
+
+  const handleCsvDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+    setCsvDragActive(true)
+  }
+
+  const handleCsvDragLeave = () => {
+    setCsvDragActive(false)
+  }
+
+  const clearCsv = () => {
+    setCsvFile(null)
+    setCsvValidation(null)
+    setStudents([])
+  }
+
+  /** Shared UI: template link + drop zone + choose file (used on step 3 and step 4 for CSV path) */
+  const renderCsvUploadArea = (opts = {}) => {
+    const compact = opts.compact === true
+    return (
+    <div className={compact ? 'space-y-3' : 'space-y-6'}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <a
+          href="/api/district/csv-template"
+          download
+          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          <Download className="w-4 h-4" /> Download CSV template
+        </a>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto shrink-0"
+          onClick={() => csvInputRef.current?.click()}
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Choose CSV file
+        </Button>
+      </div>
+
+      <input
+        ref={csvInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        className="sr-only"
+        onChange={handleCsvInputChange}
+      />
+
+      <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            csvInputRef.current?.click()
+          }
+        }}
+        onDragEnter={handleCsvDragOver}
+        onDragOver={handleCsvDragOver}
+        onDragLeave={handleCsvDragLeave}
+        onDrop={handleCsvDrop}
+        onClick={() => csvInputRef.current?.click()}
+        className={`relative rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors select-none ${
+          csvDragActive
+            ? 'border-blue-500 bg-blue-50/80'
+            : 'border-gray-300 bg-gray-50/50 hover:border-blue-400 hover:bg-blue-50/30'
+        }`}
+      >
+        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3 pointer-events-none" />
+        <p className="font-medium text-gray-800 pointer-events-none">Drop your CSV here or click to browse</p>
+        {!compact && (
+          <p className="text-sm text-gray-500 mt-1 pointer-events-none">
+            Required columns match the template (student names, grade, parent fields, parent email).
+          </p>
+        )}
+      </div>
+
+      {csvFile && (
+        <div className="rounded-lg border bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="font-medium text-gray-800 truncate">{csvFile.name}</span>
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); clearCsv() }} className="shrink-0 text-red-600 hover:text-red-700">
+              <X className="w-4 h-4 mr-1" /> Remove
+            </Button>
+          </div>
+
+          {validatingCsv && (
+            <div className="flex items-center justify-center gap-2 text-blue-600 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" /> Validating CSV…
+            </div>
+          )}
+
+          {csvValidation && !csvValidation.error && (
+            <div className="space-y-2 text-left text-sm">
+              <div className="flex items-center gap-2 text-green-700">
+                <Check className="w-4 h-4 shrink-0" />
+                <span className="font-medium">{csvValidation.validCount} valid rows ready to submit</span>
+              </div>
+              {csvValidation.invalidCount > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 text-amber-700 mb-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">{csvValidation.invalidCount} invalid rows (will be skipped)</span>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-3 max-h-40 overflow-y-auto text-xs text-amber-900">
+                    {csvValidation.invalidRows?.map((row, i) => (
+                      <div key={i} className="mb-1">
+                        Row {row.rowNumber}: {row.errors.join(', ')}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {csvValidation?.error && (
+            <div className="flex items-start gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{Array.isArray(csvValidation.error) ? csvValidation.error[0] : csvValidation.error}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    )
   }
 
   const handleSubmit = async () => {
@@ -203,7 +383,7 @@ export default function DistrictRegistrationForm() {
               <p className="text-sm text-amber-600"><span className="font-medium">Invalid Rows:</span> {submissionResult.invalidRows.length} (skipped)</p>
             )}
           </div>
-          <Button onClick={() => window.location.href = '/district'} className="bg-[#113076] hover:bg-[#1a4ba8]">
+          <Button type="button" onClick={() => { window.location.href = '/district' }} className="bg-[#113076] hover:bg-[#1a4ba8]">
             Back to District Page
           </Button>
         </Card>
@@ -336,7 +516,13 @@ export default function DistrictRegistrationForm() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <button
-                  onClick={() => { setEntryMethod('manual'); setCsvFile(null); setCsvValidation(null) }}
+                  type="button"
+                  onClick={() => {
+                    setEntryMethod('manual')
+                    setCsvFile(null)
+                    setCsvValidation(null)
+                    setCsvDragActive(false)
+                  }}
                   className={`p-6 rounded-xl border-2 text-left transition-all ${
                     entryMethod === 'manual'
                       ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
@@ -344,11 +530,18 @@ export default function DistrictRegistrationForm() {
                   }`}>
                   <FileText className={`w-8 h-8 mb-3 ${entryMethod === 'manual' ? 'text-blue-600' : 'text-gray-400'}`} />
                   <h3 className="font-semibold text-gray-900">Manual Entry</h3>
-                  <p className="text-sm text-gray-500 mt-1">Fill in each student's information directly in the form.</p>
+                  <p className="text-sm text-gray-500 mt-1">Fill in each student&apos;s information directly in the form.</p>
                 </button>
 
                 <button
-                  onClick={() => setEntryMethod('csv')}
+                  type="button"
+                  onClick={() => {
+                    setEntryMethod('csv')
+                    setCsvFile(null)
+                    setCsvValidation(null)
+                    setCsvDragActive(false)
+                    setStudents([])
+                  }}
                   className={`p-6 rounded-xl border-2 text-left transition-all ${
                     entryMethod === 'csv'
                       ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
@@ -361,12 +554,12 @@ export default function DistrictRegistrationForm() {
               </div>
 
               {entryMethod === 'csv' && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <a href="/api/district/csv-template" download
-                    className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    <Download className="w-4 h-4" /> Download CSV Template
-                  </a>
-                  <p className="text-xs text-gray-400 mt-1">Use this template to ensure your data is formatted correctly.</p>
+                <div className="rounded-xl border border-blue-200 bg-white p-4 sm:p-6">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">Upload your student list</h3>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Do this here before clicking Next. You need at least 10 valid rows.
+                  </p>
+                  {renderCsvUploadArea()}
                 </div>
               )}
             </div>
@@ -438,77 +631,13 @@ export default function DistrictRegistrationForm() {
           {step === 4 && entryMethod === 'csv' && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-1">Upload CSV File</h2>
-                <p className="text-sm text-gray-500">Upload your completed CSV file with student information.</p>
+                <h2 className="text-xl font-semibold text-gray-900 mb-1">CSV student list</h2>
+                <p className="text-sm text-gray-500">
+                  Change your file here if needed, then continue to review. You already uploaded on the previous step
+                  — counts below update live.
+                </p>
               </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
-                {!csvFile ? (
-                  <label className="cursor-pointer">
-                    <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <p className="font-medium text-gray-700">Click to upload CSV file</p>
-                    <p className="text-sm text-gray-400 mt-1">or drag and drop</p>
-                    <input type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
-                  </label>
-                ) : (
-                  <div>
-                    <div className="flex items-center justify-center gap-2 mb-3">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-700">{csvFile.name}</span>
-                      <button onClick={() => { setCsvFile(null); setCsvValidation(null); setStudents([]) }}
-                        className="text-gray-400 hover:text-red-500">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {validatingCsv && (
-                      <div className="flex items-center justify-center gap-2 text-blue-600">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Validating...
-                      </div>
-                    )}
-
-                    {csvValidation && !csvValidation.error && (
-                      <div className="space-y-3 mt-4 text-left max-w-md mx-auto">
-                        <div className="flex items-center gap-2 text-green-600">
-                          <Check className="w-4 h-4" />
-                          <span className="text-sm font-medium">{csvValidation.validCount} valid rows</span>
-                        </div>
-                        {csvValidation.invalidCount > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 text-amber-600 mb-2">
-                              <AlertCircle className="w-4 h-4" />
-                              <span className="text-sm font-medium">{csvValidation.invalidCount} invalid rows (will be skipped)</span>
-                            </div>
-                            <div className="bg-amber-50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                              {csvValidation.invalidRows?.map((row, i) => (
-                                <div key={i} className="text-xs text-amber-700 mb-1">
-                                  Row {row.rowNumber}: {row.errors.join(', ')}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {csvValidation?.error && (
-                      <div className="flex items-center justify-center gap-2 text-red-600 mt-2">
-                        <AlertCircle className="w-4 h-4" />
-                        <span className="text-sm">{csvValidation.error[0]}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {!csvFile && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <a href="/api/district/csv-template" download
-                    className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    <Download className="w-4 h-4" /> Download CSV Template
-                  </a>
-                </div>
-              )}
+              {renderCsvUploadArea({ compact: true })}
             </div>
           )}
 
@@ -584,17 +713,17 @@ export default function DistrictRegistrationForm() {
           {/* Navigation */}
           <div className="flex items-center justify-between mt-8 pt-6 border-t">
             {step > 1 ? (
-              <Button variant="outline" onClick={handleBack}>
+              <Button type="button" variant="outline" onClick={handleBack}>
                 <ChevronLeft className="w-4 h-4 mr-1" /> Back
               </Button>
             ) : <div />}
 
             {step < 5 ? (
-              <Button onClick={handleNext} className="bg-[#113076] hover:bg-[#1a4ba8]">
+              <Button type="button" onClick={handleNext} className="bg-[#113076] hover:bg-[#1a4ba8]">
                 Next <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={submitting}
+              <Button type="button" onClick={handleSubmit} disabled={submitting}
                 className="bg-green-600 hover:bg-green-700">
                 {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</> : <><Check className="w-4 h-4 mr-2" /> Submit Registration</>}
               </Button>
