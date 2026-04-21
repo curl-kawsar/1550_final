@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const overviewCards = [
   {
     title: "Zero Cost",
@@ -6,7 +8,7 @@ const overviewCards = [
       "Each scholarship covers full enrollment in the group SAT program at absolutely no cost to the district or families. No hidden fees, no upsells.",
     accent: "text-[#22c55e]",
     iconBg: "bg-[#22c55e14]",
-    icon: "$",
+    icon: "/no-cost-icon.svg",
   },
   {
     title: "6 Weeks",
@@ -15,7 +17,7 @@ const overviewCards = [
       "The program is intentionally short and runs entirely outside school hours evenings, weekends, and summers to avoid any scheduling conflicts.",
     accent: "text-[#3b74f6]",
     iconBg: "bg-[#3b74f614]",
-    icon: "◔",
+    icon: "/weeks-icons.svg",
   },
   {
     title: "18 Sessions",
@@ -24,7 +26,7 @@ const overviewCards = [
       "Students attend 18 live virtual sessions with trained tutors, covering content mastery, test-taking strategy, and full practice assessments.",
     accent: "text-[#f59e0b]",
     iconBg: "bg-[#f59e0b14]",
-    icon: "◫",
+    icon: "/session-icon.svg",
   },
   {
     title: "No Obligation",
@@ -33,7 +35,7 @@ const overviewCards = [
       "Districts retain complete control over which students participate. No contracts, no commitments, no obligations after the program ends.",
     accent: "text-[#e879f9]",
     iconBg: "bg-[#e879f914]",
-    icon: "⬡",
+    icon: "/no-obligation-icon.svg",
   },
   {
     title: "10 Spots",
@@ -42,7 +44,7 @@ const overviewCards = [
       "Each participating high school receives an initial allocation of 10 scholarship spots. Additional spots may be available when capacity allows.",
     accent: "text-[#06b6d4]",
     iconBg: "bg-[#06b6d414]",
-    icon: "👥",
+    icon: "/seats-icon.svg",
   },
   {
     title: "Full Reporting",
@@ -51,7 +53,7 @@ const overviewCards = [
       "Districts receive a confidential report showing scores for all students. Parents receive a personal score report for their child.",
     accent: "text-[#f97316]",
     iconBg: "bg-[#f9731614]",
-    icon: "▥",
+    icon: "/full-reporting-icon.svg",
   },
 ];
 
@@ -80,7 +82,7 @@ export default function ProgramOverviewSection() {
               className="rounded-2xl border border-[#141c4214] bg-white p-6 shadow-[0_2px_20px_rgba(20,28,66,0.06)]"
             >
               <div className={`grid h-12 w-12 place-items-center rounded-xl text-base ${card.iconBg} ${card.accent}`}>
-                <span aria-hidden="true">{card.icon}</span>
+                <Image src={card.icon} height={24} width={24} alt={card.title}/>
               </div>
 
               <h3 className="mt-5 font-['Norwester',sans-serif] text-[32px] uppercase leading-none tracking-wide text-[#141c42]">
