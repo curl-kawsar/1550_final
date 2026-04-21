@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const steps = [
   {
     step: "Step 01",
@@ -9,7 +11,7 @@ const steps = [
     chipBg: "bg-[#3b74f612]",
     chipBorder: "border-[#3b74f633]",
     badgeBg: "bg-[#3b74f6]",
-    icon: "👥",
+    icon: "./step-1.svg",
   },
   {
     step: "Step 02",
@@ -21,7 +23,7 @@ const steps = [
     chipBg: "bg-[#8b5cf612]",
     chipBorder: "border-[#8b5cf633]",
     badgeBg: "bg-[#8b5cf6]",
-    icon: "✉",
+    icon: "./step-2.svg",
   },
   {
     step: "Step 03",
@@ -33,7 +35,7 @@ const steps = [
     chipBg: "bg-[#06b6d412]",
     chipBorder: "border-[#06b6d433]",
     badgeBg: "bg-[#06b6d4]",
-    icon: "🧑",
+    icon: "./step-3.svg",
   },
   {
     step: "Step 04",
@@ -45,7 +47,7 @@ const steps = [
     chipBg: "bg-[#22c55e12]",
     chipBorder: "border-[#22c55e33]",
     badgeBg: "bg-[#22c55e]",
-    icon: "💬",
+    icon: "./step-4.svg",
   },
   {
     step: "Step 05",
@@ -57,7 +59,7 @@ const steps = [
     chipBg: "bg-[#f59e0b12]",
     chipBorder: "border-[#f59e0b33]",
     badgeBg: "bg-[#f59e0b]",
-    icon: "📋",
+    icon: "./step-5.svg",
   },
 ];
 
@@ -87,7 +89,7 @@ export default function HowItWorksSection() {
                 <div
                   className={`relative grid h-20 w-20 place-items-center rounded-2xl border-2 text-2xl ${step.chipBg} ${step.chipBorder}`}
                 >
-                  <span aria-hidden="true">{step.icon}</span>
+                  <Image src={step.icon} height={24} width={24} alt={step.title}/>
                   <span
                     className={`absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full font-['Norwester',sans-serif] text-xs text-white ${step.badgeBg}`}
                   >
@@ -100,7 +102,7 @@ export default function HowItWorksSection() {
                 {step.step}
               </p>
 
-              <h3 className="mt-3 font-['Norwester',sans-serif] text-[30px] uppercase leading-none tracking-wide text-[#141c42]">
+              <h3 className="mt-3 font-['Norwester',sans-serif] text-xl uppercase leading-none tracking-wide text-[#141c42]">
                 {step.title}
               </h3>
 

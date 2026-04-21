@@ -1,0 +1,12 @@
+.spinner {
+    animation: spinCounterClockwise 40s linear infinite;
+}
+
+@keyframes spinCounterClockwise {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
