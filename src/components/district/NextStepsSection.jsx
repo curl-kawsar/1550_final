@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const steps = [
   {
     label: "Step 01",
@@ -5,7 +7,7 @@ const steps = [
     description: "Provide your district name and a primary contact. Takes less than 2 minutes.",
     accent: "text-[#3b74f6]",
     iconBg: "bg-[#3b74f612]",
-    icon: "✈",
+    icon: "/next-1.svg",
   },
   {
     label: "Step 02",
@@ -13,7 +15,7 @@ const steps = [
     description: "To confirm availability in our upcoming group class",
     accent: "text-[#8b5cf6]",
     iconBg: "bg-[#8b5cf612]",
-    icon: "◔",
+    icon: "/next-2.svg",
   },
   {
     label: "Step 03",
@@ -22,7 +24,7 @@ const steps = [
       "Once confirmed, we'll send you the nomination form. You'll fill it out and we'll take care of the rest.",
     accent: "text-[#22c55e]",
     iconBg: "bg-[#22c55e12]",
-    icon: "👥",
+    icon: "/next-3.svg",
   },
 ];
 
@@ -55,7 +57,7 @@ export default function NextStepsSection() {
           {steps.map((step) => (
             <article key={step.title} className="flex gap-4">
               <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-base ${step.iconBg} ${step.accent}`}>
-                <span aria-hidden="true">{step.icon}</span>
+                <Image src={step.icon} width={24} height={24} alt={step.title}/>
               </div>
 
               <div>

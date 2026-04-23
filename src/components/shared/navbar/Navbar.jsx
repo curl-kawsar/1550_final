@@ -43,7 +43,7 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
             <Image
-              src="/logo.png"
+              src="/hero-logo.png"
               alt="1550+ Logo"
               className="h-12 w-auto"
               width={100}
@@ -54,7 +54,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center justify-center flex-1 px-8">
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-8 ml-44">
             <Link
               href="/"
               className={`text-sm font-medium transition-colors hover:text-blue-400 ${
@@ -121,7 +121,7 @@ const Navbar = () => {
                 </Button>
               </Link>
               <Link href="/student-login">
-                <Button className="login-gradient-btn text-white px-6 hover:scale-105 transition-all duration-200">
+                <Button className="inline-flex items-center gap-2 rounded-xl bg-[#004eff] px-5 py-2.5 text-sm font-semibold text-white shadow-[inset_0_-2px_0_rgba(0,0,0,0.24)] transition hover:bg-[#0e5dff]">
                   Student Login
                 </Button>
               </Link>

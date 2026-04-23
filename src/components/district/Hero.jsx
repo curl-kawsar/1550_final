@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import styles from './Hero.module.css';
 const ASSETS = {
   logo: "/hero-logo.png",
   heroCard: "/background.png",
@@ -9,12 +10,8 @@ const statPills = ["+580 PT", "+420 PT", "+410 PT", "+390 PT", "+380 PT"];
 
 export default function Hero() {
   return (
-    <section className="relative flex items-center justify-center overflow-hidden rounded-b-[28px] bg-cover bg-center bg-no-repeat px-4 pb-10 pt-10 text-white h-[90vh] sm:px-6 lg:rounded-b-[40px] lg:px-10 lg:pb-14 lg:pt-14"
+    <section className="relative flex items-center justify-center overflow-hidden rounded-b-[28px] bg-cover bg-center bg-no-repeat px-4 pb-10 pt-10 text-white min-h-full lg:h-[85vh] sm:px-6 lg:rounded-b-[40px] lg:px-10 lg:pb-14 lg:pt-14"
     style={{ backgroundImage: `url('/background.png')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-      <div className="pointer-events-none absolute inset-0">
-      <Image src="/featured-spinner.png" alt="Featured video placeholder" width={400} height={400} className="absolute top-6 right-52"/>
-      </div>
-
       <div className="relative mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-5 lg:space-y-6">
@@ -54,6 +51,16 @@ export default function Hero() {
           </div>
 
           <div className="space-y-4 self-end">
+          <div className='hidden lg:block'>
+            <Image
+              src="/hero-spinner.png"
+              alt="Featured video placeholder"
+              width={400}
+              height={400}
+              className={styles.spinner}
+              style={{ position: "absolute", top: "-5%", right: "-12%" }}
+            />  
+          </div>
             <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5">
               <img
                 src={ASSETS.featured}

@@ -4,10 +4,10 @@ const studentResults = [
   { name: "Akil E.", start: 900, final: 1310, improvement: 410, initial: "A" },
   { name: "Dylan T.", start: 1190, final: 1480, improvement: 290, initial: "D" },
   { name: "Luke C.", start: 1240, final: 1510, improvement: 270, initial: "L" },
-  { name: "Maya S.", start: 1100, final: 1515, improvement: 415, initial: "M" },
-  { name: "Sophie R.", start: 700, final: 1150, improvement: 450, initial: "S" },
-  { name: "Tariq J.", start: 1300, final: 1670, improvement: 370, initial: "T" },
-  { name: "Kiran H.", start: 850, final: 1300, improvement: 450, initial: "K" },
+  { name: "Kavin P.", start: 970, final: 1070, improvement: 100, initial: "K" },
+  { name: "Sarvesh P.", start: 1110, final: 1210, improvement: 100, initial: "S" },
+  { name: "Aiden C.", start: 1430, final: 1500, improvement: 70, initial: "A" },
+  { name: "Alex C.", start: 1490, final: 1500, improvement: 10, initial: "A" },
 ];
 
 const highlightBars = studentResults.slice(0, 5);
