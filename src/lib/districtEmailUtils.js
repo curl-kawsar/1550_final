@@ -34,9 +34,16 @@ export function generateStudentEmails(students, template, districtData) {
   const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://1550plus.com';
 
   return students.map(student => {
+    let registrationLink;
+    if (student.claimToken) {
+      registrationLink = `${websiteUrl}/register/claim/${student.claimToken}`;
+    } else {
+      registrationLink = student.registrationLink || `${websiteUrl}/register?code=${districtData.registrationCode}`;
+    }
+
     const studentData = {
       ...student,
-      registrationLink: student.registrationLink || `${websiteUrl}/register?code=${districtData.registrationCode}`
+      registrationLink
     };
 
     const { body, subject } = populatePlaceholders(

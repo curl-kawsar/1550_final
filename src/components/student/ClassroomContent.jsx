@@ -320,13 +320,13 @@ const ClassroomContent = forwardRef((props, ref) => {
             <div className="bg-blue-50 p-6 rounded-lg">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <span className="text-2xl text-gray-400 line-through">$297</span>
-                <span className="text-4xl font-bold text-blue-600">$99</span>
+                <span className="text-4xl font-bold text-blue-600">From $79</span>
               </div>
               
               <Link href="/special-offer">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 text-lg rounded-lg">
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  Purchase Now - $99
+                  View Plans & Purchase
                 </Button>
               </Link>
               

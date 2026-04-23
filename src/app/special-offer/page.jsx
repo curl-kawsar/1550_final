@@ -127,7 +127,8 @@ const SpecialOfferContent = () => {
         applied: null,
         loading: false
     });
-    const [originalPrice] = useState(99);
+    const planPrices = { recordings_only: 79, office_hours_only: 79, complete: 99 };
+    const getPlanPrice = (planType) => planPrices[planType] || 99;
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -186,8 +187,8 @@ const SpecialOfferContent = () => {
                 },
                 body: JSON.stringify({
                     code: couponState.code.trim(),
-                    planType: 'all', // Allow coupon for all plan types
-                    amount: originalPrice
+                    planType: 'all',
+                    amount: getPlanPrice(planType)
                 })
             });
 
@@ -373,13 +374,13 @@ const SpecialOfferContent = () => {
                                         ) : (
                                             <>
                                                 ${recordingsCoupon.applied.discount.finalAmount}
-                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${getPlanPrice('recordings_only')}</span>
                                             </>
                                         )}
                                     </>
                                 ) : (
                                     <>
-                                        $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                        $79 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
                                     </>
                                 )}
                             </div>
@@ -429,13 +430,13 @@ const SpecialOfferContent = () => {
                                         ) : (
                                             <>
                                                 ${officeHoursCoupon.applied.discount.finalAmount}
-                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${getPlanPrice('office_hours_only')}</span>
                                             </>
                                         )}
                                     </>
                                 ) : (
                                     <>
-                                        $99 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
+                                        $79 <span className="text-gray-400 text-2xl line-through ml-2">$297</span>
                                     </>
                                 )}
                             </div>
@@ -491,7 +492,7 @@ const SpecialOfferContent = () => {
                                         ) : (
                                             <>
                                                 ${completeCoupon.applied.discount.finalAmount}
-                                                <span className="text-gray-400 text-2xl line-through ml-2">${originalPrice}</span>
+                                                <span className="text-gray-400 text-2xl line-through ml-2">${getPlanPrice('complete')}</span>
                                             </>
                                         )}
                                     </>

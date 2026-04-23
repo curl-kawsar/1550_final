@@ -63,7 +63,14 @@ const DistrictStudentSchema = new mongoose.Schema({
       'Sent to Representative',
       'Registered',
       'Skipped',
-      'Delivery Issue'
+      'Delivery Issue',
+      'Link Opened',
+      'Claim Started',
+      'Claim Completed',
+      'Opt-In Pending',
+      'Opt-In Confirmed',
+      'Duplicate Review',
+      'Merged'
     ],
     default: 'Draft'
   },
@@ -79,6 +86,48 @@ const DistrictStudentSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: ''
+  },
+  claimToken: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null
+  },
+  claimTokenExpiresAt: {
+    type: Date,
+    default: null
+  },
+  claimStatus: {
+    type: String,
+    enum: ['none', 'link_opened', 'claim_started', 'claim_completed'],
+    default: 'none'
+  },
+  claimOpenedAt: { type: Date, default: null },
+  claimStartedAt: { type: Date, default: null },
+  claimCompletedAt: { type: Date, default: null },
+  duplicateCheckStatus: {
+    type: String,
+    enum: ['none', 'clean', 'flagged', 'merged'],
+    default: 'none'
+  },
+  mergeStatus: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  convertedStudentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    default: null
+  },
+  optInStatus: {
+    type: String,
+    enum: ['none', 'pending', 'confirmed', 'declined'],
+    default: 'none'
+  },
+  dashboardActivated: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
@@ -87,5 +136,6 @@ const DistrictStudentSchema = new mongoose.Schema({
 DistrictStudentSchema.index({ submission: 1 });
 DistrictStudentSchema.index({ status: 1 });
 DistrictStudentSchema.index({ parentEmail: 1 });
+DistrictStudentSchema.index({ claimToken: 1 });
 
 export default mongoose.models.DistrictStudent || mongoose.model('DistrictStudent', DistrictStudentSchema);

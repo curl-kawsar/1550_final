@@ -13,6 +13,7 @@ import BookingWidget from '@/components/student/BookingWidget'
 import AssignmentTab from '@/components/student/AssignmentTab'
 import ResultsTab from '@/components/student/ResultsTab'
 import ClassroomContent from '@/components/student/ClassroomContent'
+import { formatClassTimeWithConversion } from '@/lib/timezoneUtils'
 import { useChatMessages } from '@/hooks/useChat'
 import { 
   User, 
@@ -578,19 +579,36 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 ) : classTimeDetails ? (
-                  <div>
-                    <div className="text-lg font-bold text-[#457BF5] font-norwester mb-2">
-                      {classTimeDetails.dayOfWeek?.join(' & ') || 'Custom Schedule'}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
-                    </div>
-                    {classTimeDetails.description && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {classTimeDetails.description}
+                  (() => {
+                    const tzConversion = formatClassTimeWithConversion(classTimeDetails.startTime, classTimeDetails.endTime, classTimeDetails.timezone);
+                    return (
+                      <div>
+                        <div className="text-lg font-bold text-[#457BF5] font-norwester mb-2">
+                          {classTimeDetails.dayOfWeek?.join(' & ') || 'Custom Schedule'}
+                        </div>
+                        {tzConversion.converted ? (
+                          <>
+                            <div className="text-sm font-medium text-gray-900">
+                              {tzConversion.localStart} - {tzConversion.localEnd} {tzConversion.localAbbreviation}
+                              {tzConversion.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              Originally {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-gray-600">
+                            {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
+                          </div>
+                        )}
+                        {classTimeDetails.description && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {classTimeDetails.description}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()
                 ) : (
                   <div className="text-lg font-bold text-gray-400 font-norwester">
                     {student.classTime || 'Not scheduled'}
@@ -727,9 +745,27 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                       {/* Time */}
                       <div>
                         <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Time</label>
-                        <p className="text-lg font-bold text-gray-900 mt-2">
-                          {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
-                        </p>
+                        {(() => {
+                          const tzConv = formatClassTimeWithConversion(classTimeDetails.startTime, classTimeDetails.endTime, classTimeDetails.timezone);
+                          if (tzConv.converted) {
+                            return (
+                              <>
+                                <p className="text-lg font-bold text-gray-900 mt-2">
+                                  {tzConv.localStart} - {tzConv.localEnd} {tzConv.localAbbreviation}
+                                  {tzConv.nextDay && <span className="text-sm text-amber-600 ml-1">(next day)</span>}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  Originally {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
+                                </p>
+                              </>
+                            );
+                          }
+                          return (
+                            <p className="text-lg font-bold text-gray-900 mt-2">
+                              {formatTime(classTimeDetails.startTime)} - {formatTime(classTimeDetails.endTime)} {classTimeDetails.timezone}
+                            </p>
+                          );
+                        })()}
                       </div>
                       
                       {/* Meeting Link */}

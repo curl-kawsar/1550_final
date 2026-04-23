@@ -23,7 +23,16 @@ const DistrictAuditLogSchema = new mongoose.Schema({
       'template_created',
       'template_updated',
       'template_deleted',
-      'submission_status_changed'
+      'submission_status_changed',
+      'claim_link_generated',
+      'claim_link_opened',
+      'claim_started',
+      'claim_completed',
+      'duplicate_review_triggered',
+      'merge_completed',
+      'optin_sent',
+      'optin_confirmed',
+      'dashboard_activated'
     ]
   },
   submission: {

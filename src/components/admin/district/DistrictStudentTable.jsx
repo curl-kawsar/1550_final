@@ -18,13 +18,50 @@ const STUDENT_STATUS_COLORS = {
   'Sent to Representative': 'bg-green-100 text-green-700',
   'Registered': 'bg-emerald-100 text-emerald-800',
   'Skipped': 'bg-gray-100 text-gray-500',
-  'Delivery Issue': 'bg-red-100 text-red-700'
+  'Delivery Issue': 'bg-red-100 text-red-700',
+  'Link Opened': 'bg-cyan-100 text-cyan-700',
+  'Claim Started': 'bg-amber-100 text-amber-700',
+  'Claim Completed': 'bg-teal-100 text-teal-700',
+  'Opt-In Pending': 'bg-yellow-100 text-yellow-700',
+  'Opt-In Confirmed': 'bg-emerald-100 text-emerald-700',
+  'Duplicate Review': 'bg-orange-100 text-orange-700',
+  'Merged': 'bg-slate-100 text-slate-700'
+}
+
+const CLAIM_STATUS_LABELS = {
+  'none': 'Not Started',
+  'link_opened': 'Link Opened',
+  'claim_started': 'In Progress',
+  'claim_completed': 'Completed'
+}
+
+const CLAIM_STATUS_COLORS = {
+  'none': 'bg-gray-100 text-gray-500',
+  'link_opened': 'bg-cyan-100 text-cyan-700',
+  'claim_started': 'bg-amber-100 text-amber-700',
+  'claim_completed': 'bg-emerald-100 text-emerald-700'
+}
+
+const OPTIN_STATUS_LABELS = {
+  'none': '-',
+  'pending': 'Pending',
+  'confirmed': 'Confirmed',
+  'declined': 'Declined'
+}
+
+const OPTIN_STATUS_COLORS = {
+  'none': 'bg-gray-100 text-gray-400',
+  'pending': 'bg-yellow-100 text-yellow-700',
+  'confirmed': 'bg-green-100 text-green-700',
+  'declined': 'bg-red-100 text-red-700'
 }
 
 const STUDENT_STATUSES = [
   'Draft', 'Imported', 'Ready for Generation', 'Generated',
   'Included in Package', 'Sent to Representative', 'Registered',
-  'Skipped', 'Delivery Issue'
+  'Skipped', 'Delivery Issue',
+  'Link Opened', 'Claim Started', 'Claim Completed',
+  'Opt-In Pending', 'Opt-In Confirmed', 'Duplicate Review', 'Merged'
 ]
 
 export default function DistrictStudentTable({ submissionId, students, onRefresh, selectedStudents, onSelectionChange }) {
@@ -147,6 +184,8 @@ export default function DistrictStudentTable({ submissionId, students, onRefresh
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Parent / Guardian</th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Parent Email</th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Status</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Claim</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Opt-In</th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Tag</th>
                 <th className="px-3 py-2 text-center font-medium text-gray-500 text-xs">Actions</th>
               </tr>
@@ -154,7 +193,7 @@ export default function DistrictStudentTable({ submissionId, students, onRefresh
             <tbody className="divide-y">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={11} className="px-4 py-8 text-center text-gray-400">
                     No students found
                   </td>
                 </tr>
@@ -201,6 +240,16 @@ export default function DistrictStudentTable({ submissionId, students, onRefresh
                         </select>
                       </td>
                       <td className="px-3 py-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${CLAIM_STATUS_COLORS[student.claimStatus] || 'bg-gray-100 text-gray-400'}`}>
+                          {CLAIM_STATUS_LABELS[student.claimStatus] || '-'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${OPTIN_STATUS_COLORS[student.optInStatus] || 'bg-gray-100 text-gray-400'}`}>
+                          {OPTIN_STATUS_LABELS[student.optInStatus] || '-'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
                         <Badge variant="outline" className="text-[10px]">District</Badge>
                       </td>
                       <td className="px-3 py-2 text-center">
@@ -225,6 +274,16 @@ export default function DistrictStudentTable({ submissionId, students, onRefresh
                       <td className="px-3 py-2">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${STUDENT_STATUS_COLORS[student.status] || 'bg-gray-100'}`}>
                           {student.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${CLAIM_STATUS_COLORS[student.claimStatus] || 'bg-gray-100 text-gray-400'}`}>
+                          {CLAIM_STATUS_LABELS[student.claimStatus] || '-'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${OPTIN_STATUS_COLORS[student.optInStatus] || 'bg-gray-100 text-gray-400'}`}>
+                          {OPTIN_STATUS_LABELS[student.optInStatus] || '-'}
                         </span>
                       </td>
                       <td className="px-3 py-2">

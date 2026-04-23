@@ -69,14 +69,14 @@ export async function POST(request) {
           name: 'SAT 1550+ Recordings Only',
           description: 'Access to all recorded SAT preparation sessions with expert strategies and content',
         };
-        baseAmount = 9900; // $99.00 in cents
+        baseAmount = 7900; // $79.00 in cents
         break;
       case 'office_hours_only':
         productData = {
           name: 'SAT 1550+ Office Hours Only',
           description: 'Weekly office hours access - Mon, Tues, Wed, Thurs 5:30-6:30pm PST',
         };
-        baseAmount = 9900; // $99.00 in cents
+        baseAmount = 7900; // $79.00 in cents
         break;
       case 'complete':
       default:

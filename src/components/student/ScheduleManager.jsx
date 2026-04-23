@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock, AlertTriangle, CheckCircle2, History, RefreshCw, Loader2 } from 'lucide-react'
 import { useStudentSchedule, useChangeSchedule } from '@/hooks/useStudentSchedule'
+import { formatClassTimeWithConversion } from '@/lib/timezoneUtils'
 import { toast } from 'sonner'
 
 const ScheduleManager = () => {
@@ -356,19 +357,36 @@ const ScheduleManager = () => {
                       <div className="flex-1">
                         <div className={selectedValue === (classTime.name || classTime) ? 'text-blue-600 font-medium' : ''}>
                           {classTime.dayOfWeek ? (
-                            <div>
-                              <div className="font-semibold">
-                                {classTime.dayOfWeek.join(' & ')}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {formatTime(classTime.startTime)} - {formatTime(classTime.endTime)} {classTime.timezone}
-                              </div>
-                              {classTime.description && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {classTime.description}
+                            (() => {
+                              const tzConv = formatClassTimeWithConversion(classTime.startTime, classTime.endTime, classTime.timezone);
+                              return (
+                                <div>
+                                  <div className="font-semibold">
+                                    {classTime.dayOfWeek.join(' & ')}
+                                  </div>
+                                  {tzConv.converted ? (
+                                    <>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {tzConv.localStart} - {tzConv.localEnd} {tzConv.localAbbreviation}
+                                        {tzConv.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
+                                      </div>
+                                      <div className="text-xs text-gray-400">
+                                        Originally {formatTime(classTime.startTime)} - {formatTime(classTime.endTime)} {classTime.timezone}
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="text-sm text-gray-600">
+                                      {formatTime(classTime.startTime)} - {formatTime(classTime.endTime)} {classTime.timezone}
+                                    </div>
+                                  )}
+                                  {classTime.description && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {classTime.description}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
+                              );
+                            })()
                           ) : (
                             <span>{classTime.name || classTime}</span>
                           )}
