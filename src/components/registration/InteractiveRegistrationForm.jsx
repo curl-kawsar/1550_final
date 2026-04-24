@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, AlertCircle, Zap, Star } from "lucide-react"
+import { CheckCircle2, AlertCircle, Zap, Star, Shield } from "lucide-react"
 import { useSubmitRegistration, validateStep, getStepProgress } from "@/hooks/useRegistration"
 import { useEnrollmentCounts } from "@/hooks/useEnrollment"
 import { useEmailValidation } from "@/hooks/useEmailValidation"
@@ -18,6 +18,10 @@ import { toast } from "sonner"
 
 const InteractiveRegistrationForm = () => {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [prefillLoading, setPrefillLoading] = useState(false)
+  const [prefillInfo, setPrefillInfo] = useState(null)
+  const [lockRegistrationCode, setLockRegistrationCode] = useState(false)
   
   // Add Bebas Neue font (similar to Norwester)
   useEffect(() => {
@@ -103,6 +107,72 @@ const InteractiveRegistrationForm = () => {
 
     fetchDiagnosticTests()
   }, [])
+
+  const urlCode = searchParams.get('code')?.trim() || ''
+  const urlClaimToken = searchParams.get('claimToken')?.trim() || ''
+
+  // District link: /register?code=...&claimToken=... — prefill from public API
+  useEffect(() => {
+    if (!urlCode && !urlClaimToken) return
+
+    let cancelled = false
+    setPrefillLoading(true)
+
+    const params = new URLSearchParams()
+    if (urlCode) params.set('code', urlCode)
+    if (urlClaimToken) params.set('claimToken', urlClaimToken)
+
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/district/registration-prefill?${params.toString()}`)
+        const data = await res.json()
+        if (cancelled) return
+        if (!res.ok) {
+          console.warn('District prefill:', data.error || res.status)
+          if (urlCode && res.status !== 404) {
+            toast.error(data.error || 'Could not load district registration details')
+          }
+          return
+        }
+
+        if (data.partial) {
+          setPrefillInfo({
+            partial: true,
+            districtName: data.districtName,
+            schoolName: data.schoolName
+          })
+          if (data.registrationCode) {
+            setFormData((prev) => ({ ...prev, registrationCode: data.registrationCode }))
+            setLockRegistrationCode(true)
+          }
+        } else {
+          setPrefillInfo({
+            partial: false,
+            districtName: data.districtName,
+            schoolName: data.schoolName
+          })
+          setFormData((prev) => ({
+            ...prev,
+            firstName: data.studentFirstName || prev.firstName,
+            lastName: data.studentLastName || prev.lastName,
+            highSchoolName: data.highSchoolName ?? prev.highSchoolName,
+            graduationYear: data.grade != null && data.grade !== '' ? data.grade : prev.graduationYear,
+            parentFirstName: data.parentFirstName || prev.parentFirstName,
+            parentLastName: data.parentLastName || prev.parentLastName,
+            parentEmail: data.parentEmail || prev.parentEmail,
+            registrationCode: data.registrationCode || prev.registrationCode
+          }))
+          setLockRegistrationCode(!!data.registrationCode)
+        }
+      } catch (e) {
+        if (!cancelled) console.warn('District prefill fetch failed', e)
+      } finally {
+        if (!cancelled) setPrefillLoading(false)
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [urlCode, urlClaimToken])
 
   // Email validation effect with debouncing
   useEffect(() => {
@@ -281,6 +351,9 @@ const InteractiveRegistrationForm = () => {
   }
 
   const getFieldIcon = (field) => {
+    if (field === 'registrationCode' && lockRegistrationCode && formData.registrationCode) {
+      return <Shield className="w-4 h-4 text-blue-500" />
+    }
     const status = getFieldStatus(field)
     if (status === 'validating') return <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
     if (status === 'success') return <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -291,14 +364,19 @@ const InteractiveRegistrationForm = () => {
   const stepProgress = getStepProgress(currentStep, formData)
   const overallProgress = (currentStep - 1) * 25 + (stepProgress * 0.25)
 
-  const renderInputField = (field, placeholder, type = "text", required = true) => (
+  const renderInputField = (field, placeholder, type = "text", required = true, inputOptions = {}) => {
+    const { disabled = false } = inputOptions
+    return (
     <div className="relative">
       <Input
         type={type}
         placeholder={placeholder}
         value={formData[field]}
         onChange={(e) => handleInputChange(field, e.target.value)}
+        disabled={disabled}
         className={`border-[#457BF5] pr-10 transition-all duration-200 ${
+          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+        } ${
           getFieldStatus(field) === 'error' ? 'border-red-500 bg-red-50' :
           getFieldStatus(field) === 'success' ? 'border-green-500 bg-green-50' :
           getFieldStatus(field) === 'validating' ? 'border-blue-500 bg-blue-50' : ''
@@ -330,7 +408,8 @@ const InteractiveRegistrationForm = () => {
         </div>
       )}
     </div>
-  )
+    )
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -344,6 +423,15 @@ const InteractiveRegistrationForm = () => {
                 Step {currentStep} of {totalSteps}
               </Badge>
             </div>
+
+            {prefillInfo && !prefillInfo.partial && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <span>We filled in what your district provided. Please review and complete the remaining fields.</span>
+                </div>
+              </div>
+            )}
             
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
@@ -491,6 +579,15 @@ const InteractiveRegistrationForm = () => {
                 Step {currentStep} of {totalSteps}
               </Badge>
             </div>
+
+            {prefillInfo && !prefillInfo.partial && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <span>Parent details from the district are prefilled. Verify and add phone and state if needed.</span>
+                </div>
+              </div>
+            )}
             
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
@@ -746,8 +843,11 @@ const InteractiveRegistrationForm = () => {
               <div>
                 <Label className="text-sm font-medium text-gray-700">Registration Code *</Label>
                 <div className="mt-2">
-                  {renderInputField('registrationCode', '11550.07')}
+                  {renderInputField('registrationCode', '11550.07', 'text', true, { disabled: lockRegistrationCode })}
                 </div>
+                {lockRegistrationCode && formData.registrationCode && (
+                  <p className="text-xs text-blue-600 mt-1">Set by your district — contact your representative if this is wrong.</p>
+                )}
               </div>
             </div>
           </div>
@@ -973,6 +1073,26 @@ const InteractiveRegistrationForm = () => {
               />
             </div>
           </div>
+
+          {prefillLoading && (urlCode || urlClaimToken) && (
+            <p className="text-sm text-gray-500 mb-4">Loading district registration details…</p>
+          )}
+
+          {prefillInfo && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-1">
+                <Shield className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-900">District program</span>
+              </div>
+              <p className="text-sm text-blue-700">
+                {prefillInfo.districtName && <span className="font-semibold">{prefillInfo.districtName}</span>}
+                {prefillInfo.schoolName && <span> — {prefillInfo.schoolName}</span>}
+              </p>
+              {prefillInfo.partial && (
+                <p className="text-xs text-blue-600 mt-2">Your district registration code is applied below. Complete the form with your student&apos;s information.</p>
+              )}
+            </div>
+          )}
 
           {/* Overall Progress */}
           <div className="mb-8">

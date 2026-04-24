@@ -34,11 +34,13 @@ export function generateStudentEmails(students, template, districtData) {
   const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://1550plus.com';
 
   return students.map(student => {
+    const code = districtData.registrationCode || student.registrationCode;
+    const encodedCode = code ? encodeURIComponent(code) : '';
     let registrationLink;
-    if (student.claimToken) {
-      registrationLink = `${websiteUrl}/register/claim/${student.claimToken}`;
+    if (student.claimToken && code) {
+      registrationLink = `${websiteUrl}/register?code=${encodedCode}&claimToken=${encodeURIComponent(student.claimToken)}`;
     } else {
-      registrationLink = student.registrationLink || `${websiteUrl}/register?code=${districtData.registrationCode}`;
+      registrationLink = student.registrationLink || (code ? `${websiteUrl}/register?code=${encodedCode}` : '');
     }
 
     const studentData = {

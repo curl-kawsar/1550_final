@@ -44,7 +44,10 @@ export async function POST(request, { params }) {
 
     for (const student of students) {
       const claimToken = nanoid(CLAIM_TOKEN_LENGTH);
-      const claimLink = `${websiteUrl}/register/claim/${claimToken}`;
+      const regCode = submission.registrationCode;
+      const claimLink = regCode
+        ? `${websiteUrl}/register?code=${encodeURIComponent(regCode)}&claimToken=${encodeURIComponent(claimToken)}`
+        : `${websiteUrl}/register/claim/${claimToken}`;
 
       await DistrictStudent.findByIdAndUpdate(student._id, {
         claimToken,

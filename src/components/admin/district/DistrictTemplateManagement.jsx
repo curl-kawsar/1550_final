@@ -131,7 +131,7 @@ export default function DistrictTemplateManagement() {
       '{{StudentName}}': 'John Doe',
       '{{ParentName}}': 'Jane Doe',
       '{{DistrictName}}': 'Sample District',
-      '{{RegistrationLink}}': 'https://1550plus.com/register?code=DIST-SAMPLE1',
+      '{{RegistrationLink}}': 'https://1550plus.com/register?code=DIST-SAMPLE1&claimToken=per-student-token',
       '{{RegistrationCode}}': 'DIST-SAMPLE1',
       '{{SenderName}}': 'The 1550+ Team',
       '{{SchoolName}}': 'Sample High School',

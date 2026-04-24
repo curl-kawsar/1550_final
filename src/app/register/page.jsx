@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import InteractiveRegistrationForm from "@/components/registration/InteractiveRegistrationForm"
 
 export const metadata = {
@@ -6,5 +7,15 @@ export const metadata = {
 }
 
 export default function RegisterPage() {
-  return <InteractiveRegistrationForm />
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen bg-gray-50 flex items-center justify-center text-gray-500">
+          Loading…
+        </div>
+      }
+    >
+      <InteractiveRegistrationForm />
+    </Suspense>
+  )
 }
