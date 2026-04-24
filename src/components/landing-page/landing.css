@@ -1,11 +1,173 @@
 .hero-image {
-  background-image: url('/header.png');
-  background-size: cover;
-  background-position: center right;
-  background-repeat: no-repeat;
-  min-height: 80vh;
+  background: #020a2b;
+  min-height: 100vh;
   width: 100%;
   position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.hero-image-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* desktop keeps composition intact */
+  object-position: center;
+  z-index: 1;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    rgba(1, 7, 35, 0.92) 0%,
+    rgba(1, 7, 35, 0.75) 34%,
+    rgba(1, 7, 35, 0.28) 62%,
+    rgba(1, 7, 35, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.hero-content-wrap {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  padding: 2rem 1rem;
+  position: relative;
+  z-index: 3;
+}
+@font-face {
+  font-family: "norwes";
+  src: url("/fonts/norwester.otf") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+.hero-content {
+  width: min(44rem, 100%);
+}
+
+.hero-title {
+  font-family: 'Norwester', sans-serif;
+  color: #fff;
+  line-height: 0.93;
+  letter-spacing: 0.025em;
+  font-size: clamp(3rem, 9vw, 8rem);
+  margin: 0;
+}
+
+.hero-title span {
+  color: #2a4dff;
+}
+
+.hero-cta-btn {
+  margin-top: clamp(1.5rem, 4vw, 4.5rem);
+  border-radius: 9999px;
+  background: #2a4dff;
+  color: #fff;
+  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  line-height: 1.2;
+  gap: 0.4rem;
+
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+/* Ripple outline */
+.hero-cta-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(42, 77, 255, 0.6);
+  z-index: -1;
+  animation: ripple-outline 2s ease-out infinite;
+}
+
+/* Hover state */
+.hero-cta-btn:hover {
+  background: #3154ff;
+}
+
+/* Animation */
+@keyframes ripple-outline {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+
+  70% {
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+/* Tablet */
+@media only screen and (max-width: 1024px) {
+  .hero-image {
+    min-height: 88vh;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(1, 7, 35, 0.7) 0%,
+      rgba(1, 7, 35, 0.56) 45%,
+      rgba(1, 7, 35, 0.76) 100%
+    );
+  }
+
+  .hero-content-wrap {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .hero-content {
+    margin-inline: auto;
+    text-align: center;
+  }
+}
+
+/* Mobile — FIXED */
+@media only screen and (max-width: 640px) {
+  .hero-image {
+    min-height: 76vh;
+  }
+
+  .hero-image-bg {
+    object-fit: cover;              /* fills entire hero */
+    object-position: right center;  /* keeps right side in focus */
+  }
+
+  .hero-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(1, 7, 35, 0.8) 0%,
+      rgba(1, 7, 35, 0.4) 50%,
+      rgba(1, 7, 35, 0.85) 100%
+    );
+  }
+
+  .hero-content-wrap {
+    padding-top: 1.75rem;
+    padding-bottom: 1.75rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 13vw, 3.8rem);
+    line-height: 0.98;
+  }
+
+  .hero-cta-btn {
+    margin-top: 1.25rem;
+    padding: 0.75rem 1.35rem;
+  }
 }
 
 h2,
@@ -14,46 +176,13 @@ li {
   font-family: 'Norwester', sans-serif;
 }
 
-/* Mobile optimizations */
-@media only screen and (max-width: 640px) {
-  .hero-image {
-    background-position: center center;
-    min-height: 70vh;
+/* Large screens */
+@media only screen and (min-width: 1440px) {
+  .hero-content-wrap {
+    padding-inline: 3rem;
   }
-  .hero-image::after {
-    position: absolute;
-    content: '';
-    inset: 0;
-    background-color: rgba(20, 28, 66, 0.7);
-    z-index: 1;
-  }
-}
 
-/* Tablet optimizations */
-@media only screen and (min-width: 641px) and (max-width: 1024px) {
-  .hero-image {
-    background-position: center right;
-    min-height: 75vh;
+  .hero-content {
+    width: 45rem;
   }
-}
-
-/* Desktop optimizations */
-@media only screen and (min-width: 1025px) {
-  .hero-image {
-    background-position: top right;
-    min-height: 85vh;
-  }
-}
-
-/* Large desktop optimizations */
-@media only screen and (min-width: 1920px) {
-  .hero-image {
-    min-height: 90vh;
-  }
-}
-
-/* Ensure content is above overlay */
-.hero-image > * {
-  position: relative;
-  z-index: 10;
 }
