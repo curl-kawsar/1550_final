@@ -1285,7 +1285,7 @@ const InteractiveRegistrationForm = () => {
          <div className="text-center z-10 px-8">
            <div className="text-white font-black leading-tight tracking-wide" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
              <div className="text-8xl sm:text-9xl lg:text-[8rem] xl:text-[8rem] mb-4 sm:mb-6">6 WEEKS</div>
-             <div className="text-7xl sm:text-8xl lg:text-[9rem] xl:text-[8rem] mb-4 sm:mb-6">12 LESSONS</div>
+             {/* <div className="text-7xl sm:text-8xl lg:text-[9rem] xl:text-[8rem] mb-4 sm:mb-6">12 LESSONS</div> */}
              <div className="text-6xl sm:text-7xl lg:text-[8rem] xl:text-[8rem] mb-4 sm:mb-6">NO COST</div>
              <div className="text-6xl sm:text-7xl lg:text-[8rem] xl:text-[8rem]">NO EXCUSES</div>
            </div>
