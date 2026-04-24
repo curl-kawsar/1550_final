@@ -1,5 +1,12 @@
-/* Import Norwester font */
-@import url('https://fonts.cdnfonts.com/css/norwester');
+/* Self-hosted Norwester (public/font/norwester.otf) — avoids prod failures from CDN/CSP vs dev */
+@font-face {
+  font-family: "Norwester";
+  src: url("/font/norwester.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -39,13 +39,6 @@
   position: relative;
   z-index: 3;
 }
-@font-face {
-  font-family: "norwes";
-  src: url("/fonts/norwester.otf") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
 .hero-content {
   width: min(44rem, 100%);
 }
