@@ -87,11 +87,13 @@ const DistrictStudentSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  // No default: if we stored null, MongoDB's unique+sparse index could still allow
+  // only one document with "claimToken: null" per index rules—breaking bulk import.
+  // Omit the field until generate-claim-links sets a real token.
   claimToken: {
     type: String,
     unique: true,
-    sparse: true,
-    default: null
+    sparse: true
   },
   claimTokenExpiresAt: {
     type: Date,

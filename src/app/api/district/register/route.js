@@ -163,10 +163,16 @@ export async function POST(request) {
     } catch (insertErr) {
       await DistrictStudent.deleteMany({ submission: submission._id });
       await DistrictSubmission.findByIdAndDelete(submission._id);
-      console.error('District student insert failed, rolled back submission:', insertErr);
+      console.error('District student insert failed, rolled back submission:', {
+        code: insertErr?.code,
+        keyPattern: insertErr?.keyPattern,
+        keyValue: insertErr?.keyValue
+      });
       const msg =
         insertErr?.code === 11000
-          ? 'Could not save student list (duplicate or conflict). Remove the duplicate in your file or contact support. Your district submission was not left half-created.'
+          ? (insertErr.keyPattern?.claimToken
+            ? 'Import failed on a system constraint. Please try again; if it keeps happening, contact support. Your district submission was not left half-finished.'
+            : 'Could not save the full student list (duplicate in data). Remove any duplicate students with the same name and parent email, then try again. Your district submission was not left half-finished.')
           : (insertErr?.message && String(insertErr.message)) || 'Failed to save student list';
       return NextResponse.json(
         { success: false, errors: [msg] },
