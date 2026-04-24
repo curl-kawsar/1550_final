@@ -56,50 +56,139 @@
   color: #2a4dff;
 }
 
+/* Chamfered “command tile” CTA — depth + accent stripe; motion only on hover (no pulse / ripple loop) */
 .hero-cta-btn {
   margin-top: clamp(1.5rem, 4vw, 4.5rem);
-  border-radius: 9999px;
-  background: #2a4dff;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  /* Beat shadcn default size utilities when used with <Button asChild> */
+  height: auto !important;
+  min-height: 0 !important;
+
+  border-radius: 0 !important;
+  border: 0;
+  font-family: "Norwester", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
   color: #fff;
   font-size: clamp(0.95rem, 1.8vw, 1.2rem);
   line-height: 1.2;
-  gap: 0.4rem;
+  gap: 0.55rem;
+  padding: clamp(0.9rem, 2.4vw, 1.2rem) clamp(1.65rem, 4.5vw, 2.5rem);
 
-  position: relative;
-  z-index: 1;
-  overflow: visible;
+  clip-path: polygon(
+    16px 0%,
+    calc(100% - 16px) 0%,
+    100% 16px,
+    100% calc(100% - 16px),
+    calc(100% - 16px) 100%,
+    16px 100%,
+    0% calc(100% - 16px),
+    0% 16px
+  );
+
+  background: linear-gradient(168deg, #5b7cff 0%, #2a4dff 42%, #142f99 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.18) inset,
+    0 16px 36px -10px rgba(30, 70, 255, 0.55),
+    0 6px 14px rgba(0, 0, 0, 0.28);
+
+  transition: transform 0.22s ease, box-shadow 0.28s ease, filter 0.22s ease;
+  /* Reduces subpixel “cracks” where clip-path meets fills in some browsers */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-/* Ripple outline */
+/* Soft left highlight only — avoids a hard vertical strip that reads as a seam */
+.hero-cta-btn::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(42%, 7.5rem);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(122, 240, 255, 0.12) 18%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
 .hero-cta-btn::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  border: 2px solid rgba(42, 77, 255, 0.6);
-  z-index: -1;
-  animation: ripple-outline 2s ease-out infinite;
+  background: linear-gradient(
+    118deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  transform: translateX(-35%);
+  pointer-events: none;
+  transition: transform 0.45s ease;
 }
 
-/* Hover state */
 .hero-cta-btn:hover {
-  background: #3154ff;
+  transform: translateY(-4px);
+  filter: brightness(1.05);
+  background: linear-gradient(168deg, #6d8dff 0%, #355dff 42%, #1838aa 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 1px 0 rgba(255, 255, 255, 0.42) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.15) inset,
+    0 22px 48px -12px rgba(40, 90, 255, 0.65),
+    0 10px 22px rgba(0, 0, 0, 0.32);
 }
 
-/* Animation */
-@keyframes ripple-outline {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
+.hero-cta-btn:hover::after {
+  transform: translateX(35%);
+}
+
+.hero-cta-btn:active {
+  transform: translateY(-1px);
+}
+
+.hero-cta-icon {
+  transition: transform 0.22s ease;
+}
+
+.hero-cta-btn:hover .hero-cta-icon {
+  transform: translate(3px, -3px);
+}
+
+.hero-cta-btn:focus-visible {
+  outline: 2px solid #7af0ff;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta-btn,
+  .hero-cta-btn::after,
+  .hero-cta-icon {
+    transition: none;
   }
 
-  70% {
-    opacity: 0.2;
+  .hero-cta-btn:hover {
+    transform: none;
   }
 
-  100% {
-    transform: scale(1.8);
-    opacity: 0;
+  .hero-cta-btn:hover::after {
+    transform: translateX(-35%);
+  }
+
+  .hero-cta-btn:hover .hero-cta-icon {
+    transform: none;
   }
 }
 /* Tablet */

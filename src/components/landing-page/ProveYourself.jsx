@@ -42,11 +42,19 @@ const ProveYourself = () => {
             THE SAT.
           </h2>
 
-          <Link href="https://calendly.com/erin-donovan/collegeadmissions" target='blank'>
-            <Button className="hero-cta-btn py-10 px-16">
-              Book a Call <ArrowUpRight size={18} />
-            </Button>
-          </Link>
+          <Button
+            asChild
+            className="hero-cta-btn focus-visible:ring-0 focus-visible:ring-offset-0"
+          >
+            <Link
+              href="https://calendly.com/erin-donovan/collegeadmissions"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book a Call
+              <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>
