@@ -4,6 +4,12 @@ import DistrictSubmission from '@/models/DistrictSubmission';
 import DistrictStudent from '@/models/DistrictStudent';
 import DistrictAuditLog from '@/models/DistrictAuditLog';
 
+/** Consistent display + unique index: trim and collapse internal whitespace. */
+function normalizeLabel(value) {
+  if (value == null || String(value).trim() === '') return '';
+  return String(value).trim().replace(/\s+/g, ' ');
+}
+
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -63,15 +69,18 @@ export async function POST(request) {
       return NextResponse.json({ success: false, errors: fieldErrors }, { status: 400 });
     }
 
-    // Check for existing submission from same school + district
+    const districtLabel = normalizeLabel(districtName);
+    const schoolLabel = normalizeLabel(schoolName);
+
+    // Check for existing submission (same as compound unique index on district + school)
     const existing = await DistrictSubmission.findOne({
-      districtName: districtName.trim(),
-      schoolName: schoolName.trim()
+      districtName: districtLabel,
+      schoolName: schoolLabel
     });
     if (existing) {
       return NextResponse.json({
         success: false,
-        errors: ['A submission already exists for this school under this district. Only one submission per school per district is allowed.']
+        errors: ['A submission already exists for this school under this district. Only one submission per school per district is allowed. If you recently submitted and saw an error, an incomplete record may still exist: delete that submission in Admin → District Submissions, then try again.']
       }, { status: 409 });
     }
 
@@ -119,9 +128,9 @@ export async function POST(request) {
 
     // Create the submission
     const submission = await DistrictSubmission.create({
-      districtName: districtName.trim(),
-      schoolName: schoolName.trim(),
-      districtSource: districtSource?.trim() || districtName.trim(),
+      districtName: districtLabel,
+      schoolName: schoolLabel,
+      districtSource: normalizeLabel(districtSource) || districtLabel,
       representativeName: representativeName.trim(),
       representativeRole: representativeRole?.trim() || '',
       representativeEmail: representativeEmail.trim().toLowerCase(),
@@ -140,7 +149,7 @@ export async function POST(request) {
       firstName: s.firstName.trim(),
       lastName: s.lastName.trim(),
       grade: s.grade.trim(),
-      highSchoolName: s.highSchoolName?.trim() || schoolName.trim(),
+      highSchoolName: s.highSchoolName?.trim() || schoolLabel,
       parentFirstName: s.parentFirstName.trim(),
       parentLastName: s.parentLastName.trim(),
       parentEmail: s.parentEmail.trim().toLowerCase(),
@@ -149,7 +158,21 @@ export async function POST(request) {
       status: submissionMethod === 'csv' ? 'Imported' : 'Draft'
     }));
 
-    await DistrictStudent.insertMany(studentDocs);
+    try {
+      await DistrictStudent.insertMany(studentDocs, { ordered: true });
+    } catch (insertErr) {
+      await DistrictStudent.deleteMany({ submission: submission._id });
+      await DistrictSubmission.findByIdAndDelete(submission._id);
+      console.error('District student insert failed, rolled back submission:', insertErr);
+      const msg =
+        insertErr?.code === 11000
+          ? 'Could not save student list (duplicate or conflict). Remove the duplicate in your file or contact support. Your district submission was not left half-created.'
+          : (insertErr?.message && String(insertErr.message)) || 'Failed to save student list';
+      return NextResponse.json(
+        { success: false, errors: [msg] },
+        { status: 500 }
+      );
+    }
 
     // Audit log
     await DistrictAuditLog.create({
@@ -182,10 +205,31 @@ export async function POST(request) {
   } catch (error) {
     console.error('District registration error:', error);
     if (error.code === 11000) {
-      return NextResponse.json({
-        success: false,
-        errors: ['A submission already exists for this school under this district.']
-      }, { status: 409 });
+      const pattern = error.keyPattern || {};
+      if (pattern.registrationCode) {
+        return NextResponse.json(
+          {
+            success: false,
+            errors: ['Registration code collision—please try submitting again. If it repeats, contact support.']
+          },
+          { status: 409 }
+        );
+      }
+      if (pattern.districtName && pattern.schoolName) {
+        return NextResponse.json(
+          {
+            success: false,
+            errors: [
+              'A submission already exists for this school under this district. Delete the existing one in Admin → District Submissions if you need to re-register, then try again.'
+            ]
+          },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json(
+        { success: false, errors: ['A record conflicted with existing data. Check Admin for an existing district submission, or try again.'] },
+        { status: 409 }
+      );
     }
     return NextResponse.json({ success: false, errors: ['Internal server error'] }, { status: 500 });
   }

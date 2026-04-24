@@ -184,8 +184,18 @@ export default function DistrictStudentTable({ submissionId, students, onRefresh
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Parent / Guardian</th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Parent Email</th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Status</th>
-                <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Claim</th>
-                <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Opt-In</th>
+                <th
+                  className="px-3 py-2 text-left font-medium text-gray-500 text-xs"
+                  title="Whether the parent used their personal link from email (Not Started, Link Opened, In Progress, or Completed). Separate from the shared district code."
+                >
+                  Claim
+                </th>
+                <th
+                  className="px-3 py-2 text-left font-medium text-gray-500 text-xs"
+                  title="Optional program communications opt-in or consent, when the district flow collects it. “-” means none recorded yet."
+                >
+                  Opt-In
+                </th>
                 <th className="px-3 py-2 text-left font-medium text-gray-500 text-xs">Tag</th>
                 <th className="px-3 py-2 text-center font-medium text-gray-500 text-xs">Actions</th>
               </tr>
