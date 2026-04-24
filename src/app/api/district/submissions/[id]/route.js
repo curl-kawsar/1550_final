@@ -93,3 +93,35 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+/**
+ * Permanently removes a district submission, all its students, packages, and audit rows.
+ */
+export async function DELETE(request, { params }) {
+  try {
+    const admin = await verifyAdminToken(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectToDatabase();
+    const { id } = await params;
+
+    const existing = await DistrictSubmission.findById(id).lean();
+    if (!existing) {
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+    }
+
+    await Promise.all([
+      DistrictStudent.deleteMany({ submission: id }),
+      DistrictPackage.deleteMany({ submission: id }),
+      DistrictAuditLog.deleteMany({ submission: id })
+    ]);
+    await DistrictSubmission.findByIdAndDelete(id);
+
+    return NextResponse.json({ success: true, message: 'District submission deleted' });
+  } catch (error) {
+    console.error('Error deleting district submission:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

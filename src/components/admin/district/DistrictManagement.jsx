@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import {
   Search, RefreshCw, ChevronLeft, ChevronRight, Building2,
-  Users, Mail, Calendar, Filter, Loader2, Eye, BarChart3
+  Users, Mail, Calendar, Filter, Loader2, Eye, BarChart3, Trash2
 } from 'lucide-react'
 import DistrictDetail from './DistrictDetail'
 import DistrictStats from './DistrictStats'
@@ -38,6 +38,7 @@ export default function DistrictManagement() {
   const [pagination, setPagination] = useState(null)
   const [selectedSubmission, setSelectedSubmission] = useState(null)
   const [showStats, setShowStats] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
 
   const fetchSubmissions = useCallback(async () => {
     setLoading(true)
@@ -62,6 +63,31 @@ export default function DistrictManagement() {
   useEffect(() => { fetchSubmissions() }, [fetchSubmissions])
 
   useEffect(() => { setPage(1) }, [search, statusFilter])
+
+  const handleDeleteSubmission = async (e, sub) => {
+    e.stopPropagation()
+    const label = `${sub.districtName} / ${sub.schoolName}`.trim()
+    if (!window.confirm(
+      `Delete this district submission and all data for it (representative, student list, packages, logs)?\n\n${label}\n\nThis cannot be undone.`
+    )) {
+      return
+    }
+    setDeletingId(sub._id)
+    try {
+      const res = await fetch(`/api/district/submissions/${sub._id}`, { method: 'DELETE' })
+      const data = await res.json()
+        if (data.success) {
+        toast.success('District submission deleted')
+        await fetchSubmissions()
+      } else {
+        toast.error(data.error || 'Delete failed')
+      }
+    } catch {
+      toast.error('Failed to delete district submission')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (selectedSubmission) {
     return (
@@ -164,10 +190,31 @@ export default function DistrictManagement() {
                       {sub.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setSelectedSubmission(sub._id) }}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                  <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                    <div className="inline-flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={e => { e.stopPropagation(); setSelectedSubmission(sub._id) }}
+                        title="View"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Delete district submission and all related data"
+                        disabled={deletingId === sub._id}
+                        onClick={e => handleDeleteSubmission(e, sub)}
+                      >
+                        {deletingId === sub._id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

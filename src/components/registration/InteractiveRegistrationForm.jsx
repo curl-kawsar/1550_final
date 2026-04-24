@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,8 @@ const InteractiveRegistrationForm = () => {
   const [prefillLoading, setPrefillLoading] = useState(false)
   const [prefillInfo, setPrefillInfo] = useState(null)
   const [lockRegistrationCode, setLockRegistrationCode] = useState(false)
+  const [parentEmailLookup, setParentEmailLookup] = useState('')
+  const [parentLookupLoading, setParentLookupLoading] = useState(false)
   
   // Add Bebas Neue font (similar to Norwester)
   useEffect(() => {
@@ -110,8 +112,64 @@ const InteractiveRegistrationForm = () => {
 
   const urlCode = searchParams.get('code')?.trim() || ''
   const urlClaimToken = searchParams.get('claimToken')?.trim() || ''
+  const urlParentEmail = searchParams.get('parentEmail')?.trim() || ''
 
-  // District link: /register?code=...&claimToken=... — prefill from public API
+  const applyFullDistrictPrefill = useCallback((data) => {
+    setPrefillInfo({
+      partial: false,
+      districtName: data.districtName,
+      schoolName: data.schoolName
+    })
+    setFormData((prev) => ({
+      ...prev,
+      firstName: data.studentFirstName || prev.firstName,
+      lastName: data.studentLastName || prev.lastName,
+      highSchoolName: data.highSchoolName ?? prev.highSchoolName,
+      graduationYear: data.grade != null && data.grade !== '' ? data.grade : prev.graduationYear,
+      parentFirstName: data.parentFirstName || prev.parentFirstName,
+      parentLastName: data.parentLastName || prev.parentLastName,
+      parentEmail: data.parentEmail || prev.parentEmail,
+      registrationCode: data.registrationCode || prev.registrationCode
+    }))
+    setLockRegistrationCode(!!data.registrationCode)
+  }, [])
+
+  const loadStudentByParentEmail = useCallback(async () => {
+    const email = parentEmailLookup.trim().toLowerCase()
+    if (!urlCode) return
+    if (!email) {
+      toast.error('Enter the parent email the district has on file')
+      return
+    }
+    setParentLookupLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('code', urlCode)
+      params.set('parentEmail', email)
+      const res = await fetch(`/api/district/registration-prefill?${params.toString()}`)
+      const data = await res.json()
+      if (!res.ok) {
+        const msg = data.error || (res.status === 409
+          ? 'We could not pick a single student from that email. Use your personal school link, or ask the district for help.'
+          : 'Could not load your student from the district list')
+        toast.error(msg)
+        return
+      }
+      if (data.partial) {
+        toast.error('District data is still incomplete. Use the link in your school email or contact the district.')
+        return
+      }
+      applyFullDistrictPrefill(data)
+      toast.success('Your student was loaded from the district list')
+    } catch (e) {
+      console.warn('parentEmail district lookup', e)
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setParentLookupLoading(false)
+    }
+  }, [urlCode, parentEmailLookup, applyFullDistrictPrefill])
+
+  // District link: /register?code=...&claimToken=... or &parentEmail=... — prefill from public API
   useEffect(() => {
     if (!urlCode && !urlClaimToken) return
 
@@ -121,6 +179,7 @@ const InteractiveRegistrationForm = () => {
     const params = new URLSearchParams()
     if (urlCode) params.set('code', urlCode)
     if (urlClaimToken) params.set('claimToken', urlClaimToken)
+    if (urlParentEmail && !urlClaimToken) params.set('parentEmail', urlParentEmail)
 
     ;(async () => {
       try {
@@ -129,6 +188,27 @@ const InteractiveRegistrationForm = () => {
         if (cancelled) return
         if (!res.ok) {
           console.warn('District prefill:', data.error || res.status)
+          if (urlCode && urlParentEmail && !urlClaimToken && res.status === 404) {
+            const res2 = await fetch(`/api/district/registration-prefill?code=${encodeURIComponent(urlCode)}`)
+            const data2 = await res2.json()
+            if (cancelled) return
+            if (res2.ok && data2.partial) {
+              setPrefillInfo({
+                partial: true,
+                districtName: data2.districtName,
+                schoolName: data2.schoolName
+              })
+              if (data2.registrationCode) {
+                setFormData((prev) => ({ ...prev, registrationCode: data2.registrationCode }))
+                setLockRegistrationCode(true)
+              }
+              setParentEmailLookup(urlParentEmail)
+              toast.error('No student found for that parent email on this district list. Check spelling, or use the link from your school email.')
+            } else if (urlCode && res2 && !res2.ok && res2.status !== 404) {
+              toast.error(data2.error || 'Could not load district registration details')
+            }
+            return
+          }
           if (urlCode && res.status !== 404) {
             toast.error(data.error || 'Could not load district registration details')
           }
@@ -146,23 +226,7 @@ const InteractiveRegistrationForm = () => {
             setLockRegistrationCode(true)
           }
         } else {
-          setPrefillInfo({
-            partial: false,
-            districtName: data.districtName,
-            schoolName: data.schoolName
-          })
-          setFormData((prev) => ({
-            ...prev,
-            firstName: data.studentFirstName || prev.firstName,
-            lastName: data.studentLastName || prev.lastName,
-            highSchoolName: data.highSchoolName ?? prev.highSchoolName,
-            graduationYear: data.grade != null && data.grade !== '' ? data.grade : prev.graduationYear,
-            parentFirstName: data.parentFirstName || prev.parentFirstName,
-            parentLastName: data.parentLastName || prev.parentLastName,
-            parentEmail: data.parentEmail || prev.parentEmail,
-            registrationCode: data.registrationCode || prev.registrationCode
-          }))
-          setLockRegistrationCode(!!data.registrationCode)
+          applyFullDistrictPrefill(data)
         }
       } catch (e) {
         if (!cancelled) console.warn('District prefill fetch failed', e)
@@ -172,7 +236,7 @@ const InteractiveRegistrationForm = () => {
     })()
 
     return () => { cancelled = true }
-  }, [urlCode, urlClaimToken])
+  }, [urlCode, urlClaimToken, urlParentEmail, applyFullDistrictPrefill])
 
   // Email validation effect with debouncing
   useEffect(() => {
@@ -1089,7 +1153,38 @@ const InteractiveRegistrationForm = () => {
                 {prefillInfo.schoolName && <span> — {prefillInfo.schoolName}</span>}
               </p>
               {prefillInfo.partial && (
-                <p className="text-xs text-blue-600 mt-2">Your district registration code is applied below. Complete the form with your student&apos;s information.</p>
+                <>
+                  <p className="text-xs text-blue-600 mt-2">
+                    One shared code can&apos;t pre-fill every name automatically. Enter the <span className="font-medium">parent email on file with the school</span> to load that student, or use the <span className="font-medium">personal link</span> in your school email.
+                  </p>
+                  <div className="mt-3 pt-3 border-t border-blue-200/80 space-y-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1">
+                        <Label htmlFor="district-parent-email" className="text-xs text-blue-800">Parent email (on district list)</Label>
+                        <Input
+                          id="district-parent-email"
+                          type="email"
+                          autoComplete="email"
+                          placeholder="e.g. parent@school.com"
+                          value={parentEmailLookup}
+                          onChange={(e) => setParentEmailLookup(e.target.value)}
+                          className="mt-1 bg-white/80 border-blue-200"
+                        />
+                      </div>
+                      <div className="sm:self-end sm:pt-5">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="w-full sm:w-auto"
+                          onClick={loadStudentByParentEmail}
+                          disabled={parentLookupLoading || !urlCode}
+                        >
+                          {parentLookupLoading ? 'Loading…' : 'Load student'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}

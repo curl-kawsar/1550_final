@@ -67,6 +67,60 @@ export async function GET(request) {
       );
     }
 
+    const parentEmailParam = searchParams.get('parentEmail')?.trim().toLowerCase() || null;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!claimToken && parentEmailParam) {
+      if (!emailRe.test(parentEmailParam)) {
+        return NextResponse.json({ error: 'Parent email is invalid' }, { status: 400 });
+      }
+      const byParent = await DistrictStudent.find({
+        submission: submission._id,
+        parentEmail: parentEmailParam
+      }).lean();
+
+      if (byParent.length === 0) {
+        return NextResponse.json(
+          { error: 'No student in this district list matches that parent email. Check spelling or use the link in your personal email from the school.' },
+          { status: 404 }
+        );
+      }
+      if (byParent.length > 1) {
+        return NextResponse.json(
+          {
+            error:
+              'More than one student uses this parent email. Use the personal registration link in your school email, or contact the district for help.',
+            tooMany: true
+          },
+          { status: 409 }
+        );
+      }
+
+      const [student] = byParent;
+      if (student.claimStatus === 'claim_completed') {
+        return NextResponse.json(
+          { error: 'A registration for this student is already on file' },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json({
+        partial: false,
+        studentFirstName: student.firstName,
+        studentLastName: student.lastName,
+        grade: student.grade,
+        highSchoolName: student.highSchoolName || '',
+        parentFirstName: student.parentFirstName,
+        parentLastName: student.parentLastName,
+        parentEmail: student.parentEmail,
+        districtName: submission.districtName,
+        schoolName: submission.schoolName,
+        registrationCode: submission.registrationCode,
+        submissionId: submission._id,
+        studentId: student._id
+      });
+    }
+
     if (!claimToken) {
       return NextResponse.json({
         partial: true,
