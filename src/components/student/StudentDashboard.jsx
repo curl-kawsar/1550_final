@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -40,7 +41,8 @@ import {
   CheckCircle2,
   Play,
   Megaphone,
-  LogOut
+  LogOut,
+  Tag
 } from 'lucide-react'
 
 export default function StudentDashboard({ student, onLogout, onRefreshStudent }) {
@@ -404,7 +406,35 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
-              
+
+              if (tab.id === 'classroom') {
+                return (
+                  <div key="classroom-plus-offer" className="space-y-2">
+                    <button
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`group w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-200 ease-out hover:scale-[1.02] ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#457BF5] to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 ${
+                        isActive ? 'text-white' : 'text-gray-500'
+                      }`} />
+                      <span className="font-medium">{tab.label}</span>
+                    </button>
+                    <Link
+                      href="/special-offer"
+                      onClick={() => setSidebarOpen(false)}
+                      className="group w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-200 ease-out text-gray-700 hover:bg-amber-50/80 hover:text-amber-900 border border-amber-100/80 hover:border-amber-200"
+                    >
+                      <Tag className="h-5 w-5 text-amber-600 group-hover:scale-110 transition-transform" />
+                      <span className="font-medium">Special offer</span>
+                    </Link>
+                  </div>
+                )
+              }
+
               if (tab.id === 'chat') {
                 return (
                   <button
