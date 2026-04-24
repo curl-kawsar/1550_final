@@ -261,7 +261,8 @@ const SpecialOfferContent = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to create checkout session');
+                const detail = data.message || data.error || 'Failed to create checkout session';
+                throw new Error(detail);
             }
 
             // Handle free purchase (100% discount)

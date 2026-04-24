@@ -6,10 +6,20 @@ import Coupon from '@/models/Coupon';
 import CouponUsage from '@/models/CouponUsage';
 import { verifyStudentToken } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 export async function POST(request) {
   try {
+    if (!process.env.STRIPE_SECRET_KEY || !stripe) {
+      console.error('STRIPE_SECRET_KEY is not set in environment');
+      return NextResponse.json(
+        { error: 'Payment is not configured on this server', code: 'stripe_config' },
+        { status: 500 }
+      );
+    }
+
     // Verify student token
     const studentPayload = await verifyStudentToken(request);
     if (!studentPayload) {
@@ -41,9 +51,8 @@ export async function POST(request) {
       );
     }
 
-    // Create or retrieve Stripe customer
-    let stripeCustomerId = student.stripeCustomerId;
-    if (!stripeCustomerId) {
+    // Create or retrieve Stripe customer (recreate if ID is from another mode, e.g. test vs live)
+    const createCustomer = async () => {
       const customer = await stripe.customers.create({
         email: student.email,
         name: `${student.firstName} ${student.lastName}`,
@@ -52,12 +61,28 @@ export async function POST(request) {
           registrationCode: student.registrationCode || ''
         }
       });
-      stripeCustomerId = customer.id;
-
-      // Update student with Stripe customer ID
       await Student.findByIdAndUpdate(student._id, {
-        stripeCustomerId: stripeCustomerId
+        stripeCustomerId: customer.id
       });
+      return customer.id;
+    };
+
+    let stripeCustomerId = student.stripeCustomerId;
+    if (!stripeCustomerId) {
+      stripeCustomerId = await createCustomer();
+    } else {
+      try {
+        await stripe.customers.retrieve(stripeCustomerId);
+      } catch (retrieveErr) {
+        if (retrieveErr.code === 'resource_missing') {
+          console.warn(
+            'Stored Stripe customer missing in this mode (e.g. switched test→live keys). Creating a new customer.'
+          );
+          stripeCustomerId = await createCustomer();
+        } else {
+          throw retrieveErr;
+        }
+      }
     }
 
     // Define pricing and descriptions based on plan type
@@ -272,9 +297,20 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Error creating Stripe checkout session:', error);
+    const stripeCode = error.code || error.type;
+    console.error('Error creating Stripe checkout session:', {
+      message: error.message,
+      code: stripeCode,
+      type: error.type
+    });
+    // Surface Stripe’s message in JSON so production isn’t a black box (no secrets in typical Stripe errors)
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      {
+        error: 'Failed to create checkout session',
+        message: error.message,
+        code: error.code,
+        type: error.type
+      },
       { status: 500 }
     );
   }
