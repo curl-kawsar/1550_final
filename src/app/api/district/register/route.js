@@ -62,7 +62,7 @@ export async function POST(request) {
     if (!representativeName?.trim()) fieldErrors.push('Representative Name is required');
     if (!representativeEmail?.trim()) fieldErrors.push('Representative Email is required');
     else if (!validateEmail(representativeEmail)) fieldErrors.push('Representative Email is invalid');
-    if (!studentCount || studentCount < 10) fieldErrors.push('Minimum 10 students required');
+    if (!studentCount || studentCount < 5) fieldErrors.push('Minimum 5 students required');
     if (!confirmationChecked) fieldErrors.push('Confirmation checkbox is required');
 
     if (fieldErrors.length > 0) {
@@ -85,10 +85,10 @@ export async function POST(request) {
     }
 
     // Validate students
-    if (!students || !Array.isArray(students) || students.length < 10) {
+    if (!students || !Array.isArray(students) || students.length < 5) {
       return NextResponse.json({
         success: false,
-        errors: ['At least 10 student records are required']
+        errors: ['At least 5 student records are required']
       }, { status: 400 });
     }
 
@@ -118,10 +118,10 @@ export async function POST(request) {
 
     const finalValid = validStudents.filter((_, i) => !duplicateIndices.includes(i));
 
-    if (finalValid.length < 10) {
+    if (finalValid.length < 5) {
       return NextResponse.json({
         success: false,
-        errors: [`Only ${finalValid.length} valid student rows. Minimum 10 required after validation.`],
+        errors: [`Only ${finalValid.length} valid student rows. Minimum 5 required after validation.`],
         invalidRows
       }, { status: 400 });
     }

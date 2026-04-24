@@ -59,8 +59,8 @@ export default function SelectionCriteriaSection() {
             <p className="text-sm leading-7 text-white/70">
               <span className="font-semibold text-[#3b74f6]">Note:</span> Each participating high
               school is initially allocated{" "}
-              <span className="font-semibold text-white">10 scholarship spots</span>. If you&apos;d
-              like to nominate more than 10 students, let us know additional spots may be available
+              <span className="font-semibold text-white">5 scholarship spots</span>. If you&apos;d
+              like to nominate more than 5 students, let us know additional spots may be available
               when capacity allows.
             </p>
           </div>

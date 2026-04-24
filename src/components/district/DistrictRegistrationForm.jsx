@@ -49,7 +49,7 @@ export default function DistrictRegistrationForm() {
   })
 
   // Step 2: Student count
-  const [studentCount, setStudentCount] = useState(10)
+  const [studentCount, setStudentCount] = useState(5)
 
   // Step 3: Entry method
   const [entryMethod, setEntryMethod] = useState('manual')
@@ -94,7 +94,7 @@ export default function DistrictRegistrationForm() {
   }
 
   const validateStep2 = () => {
-    if (studentCount < 10) { toast.error('Minimum 10 students required'); return false }
+    if (studentCount < 5) { toast.error('Minimum 5 students required'); return false }
     return true
   }
 
@@ -103,15 +103,15 @@ export default function DistrictRegistrationForm() {
     if (step === 2 && !validateStep2()) return
     if (step === 3 && entryMethod === 'csv') {
       const n = csvValidation?.validCount ?? 0
-      if (n < 10) {
-        toast.error('Upload a CSV with at least 10 valid rows before continuing. Use the template if needed.')
+      if (n < 5) {
+        toast.error('Upload a CSV with at least 5 valid rows before continuing. Use the template if needed.')
         return
       }
     }
     if (step === 4 && entryMethod === 'csv') {
       const n = csvValidation?.validCount ?? 0
-      if (n < 10) {
-        toast.error('Your CSV must have at least 10 valid student rows.')
+      if (n < 5) {
+        toast.error('Your CSV must have at least 5 valid student rows.')
         return
       }
     }
@@ -125,8 +125,8 @@ export default function DistrictRegistrationForm() {
           s.parentLastName?.trim() &&
           s.parentEmail?.trim()
       )
-      if (filled.length < 10) {
-        toast.error(`Complete at least 10 student rows (all required fields). Currently ${filled.length} complete.`)
+      if (filled.length < 5) {
+        toast.error(`Complete at least 5 student rows (all required fields). Currently ${filled.length} complete.`)
         return
       }
     }
@@ -156,7 +156,7 @@ export default function DistrictRegistrationForm() {
         setCsvValidation(data)
         if (data.validRows) {
           setStudents(data.validRows)
-          setStudentCount(Math.max(data.validRows.length, 10))
+          setStudentCount(Math.max(data.validRows.length, 5))
         }
         if (data.invalidCount > 0) {
           toast.warning(`${data.invalidCount} invalid rows found. Valid rows will be imported.`)
@@ -329,8 +329,8 @@ export default function DistrictRegistrationForm() {
       ? csvValidation.validRows
       : students
 
-    if (finalStudents.length < 10) {
-      toast.error('At least 10 valid students are required')
+    if (finalStudents.length < 5) {
+      toast.error('At least 5 valid students are required')
       return
     }
 
@@ -486,15 +486,15 @@ export default function DistrictRegistrationForm() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-1">Number of Students</h2>
-                <p className="text-sm text-gray-500">How many students will you be nominating? Minimum of 10 students required.</p>
+                <p className="text-sm text-gray-500">How many students will you be nominating? Minimum of 5 students required.</p>
               </div>
 
               <div className="max-w-xs">
                 <Label htmlFor="studentCount">Number of Students *</Label>
-                <Input id="studentCount" type="number" min={10} value={studentCount}
-                  onChange={e => setStudentCount(Math.max(10, parseInt(e.target.value) || 10))}
+                <Input id="studentCount" type="number" min={5} value={studentCount}
+                  onChange={e => setStudentCount(Math.max(5, parseInt(e.target.value) || 5))}
                   className="text-2xl font-bold text-center h-14" />
-                <p className="text-xs text-gray-400 mt-1">Minimum: 10 students. No maximum limit.</p>
+                <p className="text-xs text-gray-400 mt-1">Minimum: 5 students. No maximum limit.</p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -557,7 +557,7 @@ export default function DistrictRegistrationForm() {
                 <div className="rounded-xl border border-blue-200 bg-white p-4 sm:p-6">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">Upload your student list</h3>
                   <p className="text-xs text-gray-500 mb-4">
-                    Do this here before clicking Next. You need at least 10 valid rows.
+                    Do this here before clicking Next. You need at least 5 valid rows.
                   </p>
                   {renderCsvUploadArea()}
                 </div>

@@ -59,7 +59,9 @@ const AssignmentTab = ({ student }) => {
     }
   }
 
-  const assignments = assignmentsData?.assignments || []
+  const assignments = [...(assignmentsData?.assignments || [])].sort((a, b) =>
+    a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' })
+  )
   const completedCount = assignments.filter(a => a.isCompleted).length
   const activeCount = assignments.filter(a => !a.isCompleted).length
 

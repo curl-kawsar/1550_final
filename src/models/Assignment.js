@@ -55,7 +55,7 @@ AssignmentSchema.methods.getQuestionsForStudent = function() {
 AssignmentSchema.statics.getActiveAssignments = function() {
   return this.find({ isActive: true })
     .select('title description timeLimit totalQuestions createdAt')
-    .sort({ createdAt: 1 });
+    .sort({ title: 1, createdAt: 1 });
 };
 
 const Assignment = mongoose.models.Assignment || mongoose.model('Assignment', AssignmentSchema);

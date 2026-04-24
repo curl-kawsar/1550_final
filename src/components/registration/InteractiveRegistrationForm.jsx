@@ -964,17 +964,20 @@ const InteractiveRegistrationForm = () => {
                               </div>
                               {(() => {
                                 const tzConv = classTime.startTime && classTime.endTime
-                                  ? formatClassTimeWithConversion(classTime.startTime, classTime.endTime, classTime.timezone || 'Pacific')
+                                  ? formatClassTimeWithConversion(classTime.startTime, classTime.endTime, classTime.timezone || 'Eastern', classTime.dayOfWeek)
                                   : { converted: false };
                                 if (tzConv.converted) {
                                   return (
                                     <>
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Local date: {tzConv.localDate}
+                                      </div>
                                       <div className={`text-sm mt-1 font-medium ${formData.classTime === classTime.name ? 'text-blue-500' : 'text-gray-900'}`}>
                                         Class time: {tzConv.localStart} - {tzConv.localEnd} {tzConv.localAbbreviation}
                                         {tzConv.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
                                       </div>
                                       <div className="text-xs text-gray-400 mt-0.5">
-                                        Originally {formatTime(classTime.startTime)} - {formatTime(classTime.endTime)} {classTime.timezone || 'Pacific'}
+                                        Originally {formatTime(classTime.startTime)} - {formatTime(classTime.endTime)} {classTime.timezone || 'Eastern'}
                                       </div>
                                     </>
                                   );
@@ -982,7 +985,7 @@ const InteractiveRegistrationForm = () => {
                                 return (
                                   <div className={`text-sm mt-1 ${formData.classTime === classTime.name ? 'text-blue-500' : 'text-gray-600'}`}>
                                     Class time: {classTime.startTime && classTime.endTime
-                                      ? `${formatTime(classTime.startTime)} - ${formatTime(classTime.endTime)} ${classTime.timezone || 'Pacific'}`
+                                      ? `${formatTime(classTime.startTime)} - ${formatTime(classTime.endTime)} ${classTime.timezone || 'Eastern'}`
                                       : classTime.name}
                                   </div>
                                 );
@@ -1074,9 +1077,34 @@ const InteractiveRegistrationForm = () => {
                               day: 'numeric'
                             })}
                           </div>
-                          <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
-                            Test time: {formatTime(test.startTime)} - {formatTime(test.endTime)} {test.timezone}
-                          </div>
+                          {(() => {
+                            const tzConv = test.startTime && test.endTime
+                              ? formatClassTimeWithConversion(test.startTime, test.endTime, test.timezone || 'Eastern', test.date)
+                              : { converted: false };
+                            if (tzConv.converted) {
+                              return (
+                                <>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Local date: {tzConv.localDate}
+                                  </div>
+                                  <div className={`text-sm mt-1 font-medium ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-900'}`}>
+                                    Test time: {tzConv.localStart} - {tzConv.localEnd} {tzConv.localAbbreviation}
+                                    {tzConv.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
+                                  </div>
+                                  <div className="text-xs text-gray-400 mt-0.5">
+                                    Originally {formatTime(test.startTime)} - {formatTime(test.endTime)} {test.timezone || 'Eastern'}
+                                  </div>
+                                </>
+                              );
+                            }
+                            return (
+                              <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
+                                Test time: {test.startTime && test.endTime
+                                  ? `${formatTime(test.startTime)} - ${formatTime(test.endTime)} ${test.timezone || 'Eastern'}`
+                                  : test.name}
+                              </div>
+                            );
+                          })()}
                           {test.location && test.location !== 'Online' && (
                             <div className={`text-sm mt-1 ${formData.diagnosticTestDate === test.name ? 'text-blue-500' : 'text-gray-600'}`}>
                               Location: {test.location}

@@ -41,7 +41,7 @@ const DistrictSubmissionSchema = new mongoose.Schema({
   studentCount: {
     type: Number,
     required: true,
-    min: 10
+    min: 5
   },
   submissionMethod: {
     type: String,

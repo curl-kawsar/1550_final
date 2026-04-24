@@ -631,19 +631,36 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 ) : diagnosticTestDetails ? (
-                  <div>
-                    <div className="text-lg font-bold text-green-600 font-norwester mb-2">
-                      {formatDiagnosticDate(diagnosticTestDetails.date)}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
-                    </div>
-                    {diagnosticTestDetails.location && diagnosticTestDetails.location !== 'Online' && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        📍 {diagnosticTestDetails.location}
+                  (() => {
+                    const dtTzConv = formatClassTimeWithConversion(diagnosticTestDetails.startTime, diagnosticTestDetails.endTime, diagnosticTestDetails.timezone);
+                    return (
+                      <div>
+                        <div className="text-lg font-bold text-green-600 font-norwester mb-2">
+                          {formatDiagnosticDate(diagnosticTestDetails.date)}
+                        </div>
+                        {dtTzConv.converted ? (
+                          <>
+                            <div className="text-sm font-medium text-gray-900">
+                              {dtTzConv.localStart} - {dtTzConv.localEnd} {dtTzConv.localAbbreviation}
+                              {dtTzConv.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              Originally {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-gray-600">
+                            {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
+                          </div>
+                        )}
+                        {diagnosticTestDetails.location && diagnosticTestDetails.location !== 'Online' && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            📍 {diagnosticTestDetails.location}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()
                 ) : (
                   <div className="text-lg font-bold text-gray-400 font-norwester">
                     {student.diagnosticTestDate ? 
@@ -849,9 +866,27 @@ export default function StudentDashboard({ student, onLogout, onRefreshStudent }
                       {/* Time */}
                       <div>
                         <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Time</label>
-                        <p className="text-lg font-bold text-gray-900 mt-2">
-                          {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
-                        </p>
+                        {(() => {
+                          const dtTzConv2 = formatClassTimeWithConversion(diagnosticTestDetails.startTime, diagnosticTestDetails.endTime, diagnosticTestDetails.timezone);
+                          if (dtTzConv2.converted) {
+                            return (
+                              <>
+                                <p className="text-lg font-bold text-gray-900 mt-2">
+                                  {dtTzConv2.localStart} - {dtTzConv2.localEnd} {dtTzConv2.localAbbreviation}
+                                  {dtTzConv2.nextDay && <span className="text-sm text-amber-600 ml-1">(next day)</span>}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  Originally {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
+                                </p>
+                              </>
+                            );
+                          }
+                          return (
+                            <p className="text-lg font-bold text-gray-900 mt-2">
+                              {formatTime(diagnosticTestDetails.startTime)} - {formatTime(diagnosticTestDetails.endTime)} {diagnosticTestDetails.timezone}
+                            </p>
+                          );
+                        })()}
                       </div>
                       
                       {diagnosticTestDetails.location && (

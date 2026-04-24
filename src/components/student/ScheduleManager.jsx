@@ -225,10 +225,18 @@ const ScheduleManager = () => {
       // This is a dynamic option with details
       if (changeType === 'classTime') {
         if (option.dayOfWeek && option.startTime && option.endTime) {
+          const conv = formatClassTimeWithConversion(option.startTime, option.endTime, option.timezone);
+          if (conv.converted) {
+            return `${option.dayOfWeek.join(' & ')} - ${conv.localStart} to ${conv.localEnd} ${conv.localAbbreviation}${conv.nextDay ? ' (next day)' : ''}`;
+          }
           return `${option.dayOfWeek.join(' & ')} - ${formatTime(option.startTime)} to ${formatTime(option.endTime)} ${option.timezone}`;
         }
       } else if (changeType === 'diagnosticTest') {
         if (option.date && option.startTime && option.endTime) {
+          const conv = formatClassTimeWithConversion(option.startTime, option.endTime, option.timezone);
+          if (conv.converted) {
+            return `${formatDiagnosticDate(option.date)} - ${conv.localStart} to ${conv.localEnd} ${conv.localAbbreviation}${conv.nextDay ? ' (next day)' : ''}`;
+          }
           return `${formatDiagnosticDate(option.date)} - ${formatTime(option.startTime)} to ${formatTime(option.endTime)} ${option.timezone}`;
         }
       }
@@ -501,9 +509,27 @@ const ScheduleManager = () => {
                               <div className="font-semibold">
                                 {formatDiagnosticDate(diagnosticTest.date)}
                               </div>
-                              <div className="text-sm text-gray-600">
-                                {formatTime(diagnosticTest.startTime)} - {formatTime(diagnosticTest.endTime)} {diagnosticTest.timezone}
-                              </div>
+                              {(() => {
+                                const dtConv = formatClassTimeWithConversion(diagnosticTest.startTime, diagnosticTest.endTime, diagnosticTest.timezone);
+                                if (dtConv.converted) {
+                                  return (
+                                    <>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {dtConv.localStart} - {dtConv.localEnd} {dtConv.localAbbreviation}
+                                        {dtConv.nextDay && <span className="text-xs text-amber-600 ml-1">(next day)</span>}
+                                      </div>
+                                      <div className="text-xs text-gray-400">
+                                        Originally {formatTime(diagnosticTest.startTime)} - {formatTime(diagnosticTest.endTime)} {diagnosticTest.timezone}
+                                      </div>
+                                    </>
+                                  );
+                                }
+                                return (
+                                  <div className="text-sm text-gray-600">
+                                    {formatTime(diagnosticTest.startTime)} - {formatTime(diagnosticTest.endTime)} {diagnosticTest.timezone}
+                                  </div>
+                                );
+                              })()}
                               {diagnosticTest.location && (
                                 <div className="text-xs text-gray-500 mt-1">
                                   📍 {diagnosticTest.location}
