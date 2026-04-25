@@ -9,6 +9,19 @@ import { Eye, Search, Filter, Download, ChevronLeft, ChevronRight, Edit2, Save, 
 import { toast } from "sonner"
 import { useDebounce } from '@/hooks/useDebounce'
 
+/**
+ * `graduationYear` is a calendar year (number) in the DB. `new Date(2026)` is wrong — JS treats
+ * numeric args as *milliseconds since epoch*, which lands in 1969/1970 and breaks the admin view.
+ */
+function displayGraduationYear(value) {
+  if (value === null || value === undefined || value === '') return 'N/A'
+  const n = Number(value)
+  if (Number.isFinite(n) && n >= 1990 && n <= 2040) return n
+  const d = new Date(value)
+  if (Number.isFinite(d.getTime())) return d.getUTCFullYear()
+  return 'N/A'
+}
+
 const StudentTable = () => {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -314,7 +327,7 @@ const StudentTable = () => {
       student.universitiesWant || 'N/A',
       formatScheduleOption(student.classTime, 'classTime'),
       formatScheduleOption(student.diagnosticTestDate, 'diagnosticTest'),
-      student.graduationYear ? new Date(student.graduationYear).getFullYear() : 'N/A',
+      displayGraduationYear(student.graduationYear),
       student.status || 'N/A',
       student.submittedAt ? new Date(student.submittedAt).toLocaleDateString() : 'N/A'
     ])
@@ -486,7 +499,7 @@ const StudentTable = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Graduation Year</label>
-                  <p>{student.graduationYear ? new Date(student.graduationYear).getFullYear() : 'N/A'}</p>
+                  <p>{displayGraduationYear(student.graduationYear)}</p>
                 </div>
               </div>
             </div>
