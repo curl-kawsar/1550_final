@@ -23,7 +23,7 @@ const createTransporter = () => {
 const createThankYouEmailTemplate = (firstName, lastName) => {
   const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://1550plus.com';
   const logoUrl = `${websiteUrl}/logo.png`;
-  
+
   return {
     subject: 'Thank You for Contacting 1550+ - We Will Be in Touch Soon',
     html: `
@@ -271,12 +271,12 @@ This email was sent in response to your inquiry through our website contact form
 export const sendThankYouEmail = async (recipientEmail, firstName, lastName) => {
   try {
     const transporter = createTransporter();
-    
+
     // Verify transporter configuration
     await transporter.verify();
-    
+
     const emailTemplate = createThankYouEmailTemplate(firstName, lastName);
-    
+
     const mailOptions = {
       from: {
         name: '1550+ College Prep',
@@ -293,15 +293,15 @@ export const sendThankYouEmail = async (recipientEmail, firstName, lastName) => 
         'Reply-To': '1550plus@1550plus.com'
       }
     };
-    
+
     const result = await transporter.sendMail(mailOptions);
     console.log('Thank you email sent successfully:', result.messageId);
-    
+
     return {
       success: true,
       messageId: result.messageId
     };
-    
+
   } catch (error) {
     console.error('Error sending thank you email:', error);
     return {
@@ -315,7 +315,7 @@ export const sendThankYouEmail = async (recipientEmail, firstName, lastName) => 
 export const sendAdminNotification = async (contactData) => {
   try {
     const transporter = createTransporter();
-    
+
     const mailOptions = {
       from: {
         name: '1550+ Contact System',
@@ -353,15 +353,15 @@ ${contactData.message}
 Please respond to this inquiry as soon as possible.
       `
     };
-    
+
     const result = await transporter.sendMail(mailOptions);
     console.log('Admin notification email sent successfully:', result.messageId);
-    
+
     return {
       success: true,
       messageId: result.messageId
     };
-    
+
   } catch (error) {
     console.error('Error sending admin notification email:', error);
     return {
@@ -374,12 +374,12 @@ Please respond to this inquiry as soon as possible.
 // Parental confirmation email template
 const createParentalConfirmationEmailTemplate = (studentFirstName, studentLastName, parentFirstName, approvalToken) => {
   // Use localhost for development, production URL for deployed environments
-  const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 
-                    (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://1550plus.com');
+  const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL ||
+    (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://1550plus.com');
   const logoUrl = `${websiteUrl}/logo.png`;
   const approvalUrl = `${websiteUrl}/api/approval/confirm?token=${approvalToken}`;
   const declineUrl = `${websiteUrl}/api/approval/decline?token=${approvalToken}`;
-  
+
   return {
     subject: `Parental Consent Required - ${studentFirstName} ${studentLastName}'s Registration for 1550+ SAT Prep`,
     html: `
@@ -539,8 +539,8 @@ const createParentalConfirmationEmailTemplate = (studentFirstName, studentLastNa
 
             <p>If you have any questions about the program or need assistance, please don't hesitate to contact us:</p>
             <ul>
-              <li>Email: support@1550plus.com</li>
-              <li>Phone: (555) 123-4567</li>
+              <li>Email: contact@1550plus.com</li>
+              <li>Phone: (475) 333-0550</li>
               <li>Website: 1550plus.com</li>
             </ul>
 
@@ -582,8 +582,8 @@ To decline the registration, visit: ${declineUrl}
 Important: Your child cannot access their dashboard until you provide consent.
 
 Contact us:
-- Email: support@1550plus.com
-- Phone: (555) 123-4567
+- Email: contact@1550plus.com
+- Phone: (475) 333-0550
 - Website: 1550plus.com
 
 Best regards,
@@ -596,11 +596,11 @@ The 1550+ Team
 export const sendParentalConfirmationEmail = async (studentData) => {
   try {
     const transporter = createTransporter();
-    
+
     // Generate unique approval token
     const crypto = await import('crypto');
     const approvalToken = crypto.randomBytes(32).toString('hex');
-    
+
     const emailTemplate = createParentalConfirmationEmailTemplate(
       studentData.firstName,
       studentData.lastName,
@@ -617,15 +617,15 @@ export const sendParentalConfirmationEmail = async (studentData) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    
+
     console.log('Parental confirmation email sent successfully:', result.messageId);
-    
+
     return {
       success: true,
       messageId: result.messageId,
       approvalToken: approvalToken
     };
-    
+
   } catch (error) {
     console.error('Error sending parental confirmation email:', error);
     return {
@@ -706,7 +706,7 @@ export const sendDistrictPackage = async (recipientEmail, representativeName, su
       headers: {
         'X-Priority': '3',
         'X-Mailer': '1550+ District Scholarship System',
-        'Reply-To': 'support@1550plus.com'
+        'Reply-To': 'contact@1550plus.com'
       }
     };
 
