@@ -57,7 +57,16 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+  		keyframes: {
+  			'hiw-marquee': {
+  				'0%': { transform: 'translate3d(0,0,0)' },
+  				'100%': { transform: 'translate3d(-50%,0,0)' },
+  			},
+  		},
+  		animation: {
+  			'hiw-marquee': 'hiw-marquee 38s linear infinite',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

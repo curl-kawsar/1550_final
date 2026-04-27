@@ -5,6 +5,9 @@ import CallToAction from '@/components/landing-page/CallToAction';
 import HowItWorks from '@/components/landing-page/HowItWorks';
 import ProveYourself from '@/components/landing-page/ProveYourself';
 import Unlock from '@/components/landing-page/Unlock';
+import HowItWorks2 from '@/components/landing-page/howitswork_2';
+import Philosophy from '@/components/landing-page/Philosophy';
+import YourPath from '@/components/landing-page/yourPath';
 
 const Home = () => {
   return (
@@ -13,6 +16,9 @@ const Home = () => {
       <Unlock />
       <HowItWorks />
       <MidPoint />
+      <HowItWorks2 />
+      <Philosophy />
+      <YourPath />
       <Testimonial />
       <CallToAction />
     </div>
