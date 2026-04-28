@@ -1,4 +1,11 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import { Inter_Tight } from 'next/font/google';
+
+const CARD_STAGGER_S = 0.41;
+const CARD_DURATION_S = 0.62;
+const EASE_IN = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
@@ -6,13 +13,15 @@ const interTight = Inter_Tight({
   display: 'swap',
 });
 
+const CARD_DEFAULT = '/how-it-works-2/step-card-2.svg';
+const CARD_HOVER = '/how-it-works-2/step-card-1.svg';
+
 const STEPS = [
   {
     id: '01',
     stepLabel: 'Step 01',
     labelMedium: true,
     title: 'Show up to every lesson.',
-    cardSrc: '/how-it-works-2/step-card-1.svg',
     tabSrc: '/how-it-works-2/tab-arrow-1.svg',
     tabAlt: '',
     tabClassName: 'right-[7.5%] top-[5.5%] h-[18px] w-[18px] sm:h-5 sm:w-5',
@@ -22,7 +31,6 @@ const STEPS = [
     stepLabel: 'Step 02',
     labelMedium: false,
     title: 'Complete every assignment',
-    cardSrc: '/how-it-works-2/step-card-2.svg',
     tabSrc: '/how-it-works-2/tab-arrow-2.svg',
     tabAlt: '',
     tabClassName: 'right-[7.5%] top-[5.5%] h-[18px] w-[18px] sm:h-5 sm:w-5',
@@ -37,21 +45,48 @@ const STEPS = [
         <span className="block">Own Way</span>
       </>
     ),
-    cardSrc: '/how-it-works-2/step-card-2.svg',
     tabSrc: '/how-it-works-2/tab-dot.svg',
     tabAlt: '',
     tabClassName: 'right-[7%] top-[4.5%] size-[22px]',
   },
 ];
 
-function StepCard({ stepLabel, labelMedium, title, cardSrc, tabSrc, tabAlt, tabClassName }) {
+function StepCard({
+  stepLabel,
+  labelMedium,
+  title,
+  tabSrc,
+  tabAlt,
+  tabClassName,
+  staggerIndex,
+  entranceVisible,
+  reduceMotion,
+}) {
+  const shown = reduceMotion || entranceVisible;
+  const delay = reduceMotion ? 0 : staggerIndex * CARD_STAGGER_S;
+
   return (
-    <article className="relative mx-auto w-full max-w-[390px] shrink-0">
+    <article
+      className="group relative mx-auto w-full max-w-[390px] shrink-0 will-change-[opacity,transform] motion-reduce:will-change-auto"
+      style={{
+        transitionDuration: reduceMotion ? '0ms' : `${CARD_DURATION_S}s`,
+        transitionTimingFunction: EASE_IN,
+        transitionDelay: `${delay}s`,
+        transitionProperty: 'opacity, transform',
+        transform: shown ? 'translate3d(0,0,0)' : 'translate3d(-28px,0,0)',
+        opacity: shown ? 1 : 0,
+      }}
+    >
       <div className="relative aspect-[390/315] w-full overflow-hidden rounded-none">
         <img
-          src={cardSrc}
+          src={CARD_DEFAULT}
           alt=""
-          className="absolute inset-0 block size-full max-w-none object-fill"
+          className="absolute inset-0 block size-full max-w-none object-fill transition-opacity duration-500 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover:opacity-0"
+        />
+        <img
+          src={CARD_HOVER}
+          alt=""
+          className="absolute inset-0 block size-full max-w-none object-fill opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover:opacity-100"
         />
         <img
           src={tabSrc}
@@ -82,8 +117,38 @@ function StepCard({ stepLabel, labelMedium, title, cardSrc, tabSrc, tabAlt, tabC
  * Add to a page: `import HowItWorks2 from '@/components/landing-page/howitswork_2'`
  */
 export default function HowItWorks2() {
+  const sectionRef = useRef(null);
+  const [entranceVisible, setEntranceVisible] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduceMotion(mq.matches);
+    const onChange = () => setReduceMotion(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setEntranceVisible(true);
+      return;
+    }
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setEntranceVisible(true);
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -8% 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [reduceMotion]);
+
   return (
     <section
+      ref={sectionRef}
       className={`relative overflow-hidden bg-[#010516] pb-20 pt-16 sm:pb-24 sm:pt-20 lg:pb-32 lg:pt-[80px] ${interTight.className}`}
     >
       <div
@@ -105,9 +170,15 @@ export default function HowItWorks2() {
           </h2>
         </header>
 
-        <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:justify-between lg:gap-6">
-          {STEPS.map((s) => (
-            <StepCard key={s.id} {...s} />
+        <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:justify-center lg:gap-6">
+          {STEPS.map((s, i) => (
+            <StepCard
+              key={s.id}
+              {...s}
+              staggerIndex={i}
+              entranceVisible={entranceVisible}
+              reduceMotion={reduceMotion}
+            />
           ))}
         </div>
       </div>
