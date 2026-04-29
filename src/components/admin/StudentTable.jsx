@@ -22,6 +22,14 @@ function displayGraduationYear(value) {
   return 'N/A'
 }
 
+/** Stored value for “cannot attend listed dates” (matches registration form). */
+const DIAGNOSTIC_ALTERNATIVE_STORED_VALUE = "I can't make any of these dates"
+/** GET /api/students `diagnosticTest` param for filtering alternative / cannot-attend rows */
+const DIAGNOSTIC_ALTERNATIVE_FILTER_VALUE = 'alternative'
+const DIAGNOSTIC_ALTERNATIVE_EDIT_LABEL =
+  "Can't make any of these dates (we'll contact you to arrange an alternative)"
+const DIAGNOSTIC_ALTERNATIVE_FILTER_LABEL = 'Cannot attend — alternative required'
+
 const StudentTable = () => {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,6 +60,22 @@ const StudentTable = () => {
   const [classTimeOptions, setClassTimeOptions] = useState([])
   const [diagnosticTestOptions, setDiagnosticTestOptions] = useState([])
   const [loadingScheduleOptions, setLoadingScheduleOptions] = useState(true)
+  const [exportingCsv, setExportingCsv] = useState(false)
+
+  /** Edit dropdown: active tests plus registration “alternative” sentinel (not a DB DiagnosticTest row). */
+  const diagnosticSelectOptions = useMemo(() => {
+    const list = Array.isArray(diagnosticTestOptions) ? [...diagnosticTestOptions] : []
+    const hasAlt = list.some(
+      (opt) => (typeof opt === 'object' ? opt.name : opt) === DIAGNOSTIC_ALTERNATIVE_STORED_VALUE
+    )
+    if (!hasAlt) {
+      list.push({
+        name: DIAGNOSTIC_ALTERNATIVE_STORED_VALUE,
+        isAlternativeOption: true
+      })
+    }
+    return list
+  }, [diagnosticTestOptions])
 
   // Debounce search input to avoid excessive API calls
   const debouncedSearch = useDebounce(filters.search, 500)
@@ -168,15 +192,7 @@ const StudentTable = () => {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams({
-        page: pagination.currentPage.toString(),
-        limit: '10'
-      })
-      
-      if (memoizedFilters.search) params.append('search', memoizedFilters.search)
-      if (memoizedFilters.status) params.append('status', memoizedFilters.status)
-      if (memoizedFilters.diagnosticTest) params.append('diagnosticTest', memoizedFilters.diagnosticTest)
-      if (memoizedFilters.classTime) params.append('classTime', memoizedFilters.classTime)
+      const params = buildStudentsListQueryParams(pagination.currentPage, 10)
       
       const response = await fetch(`/api/students?${params}`)
       const data = await response.json()
@@ -233,7 +249,8 @@ const StudentTable = () => {
         setDiagnosticTestOptions([
           'Saturday September 27th 8:30am - noon PST',
           'Sunday September 28th 8:30am - noon PST',
-          'I can\'t make either of these dates (reply below with if neither option works for you)'
+          'I can\'t make either of these dates (reply below with if neither option works for you)',
+          DIAGNOSTIC_ALTERNATIVE_STORED_VALUE
         ])
       }
     } catch (error) {
@@ -248,7 +265,8 @@ const StudentTable = () => {
       setDiagnosticTestOptions([
         'Saturday September 27th 8:30am - noon PST',
         'Sunday September 28th 8:30am - noon PST',
-        'I can\'t make either of these dates (reply below with if neither option works for you)'
+        'I can\'t make either of these dates (reply below with if neither option works for you)',
+        DIAGNOSTIC_ALTERNATIVE_STORED_VALUE
       ])
     } finally {
       setLoadingScheduleOptions(false)
@@ -311,41 +329,77 @@ const StudentTable = () => {
     }
   }
 
-  const exportToCSV = () => {
+  const buildStudentsListQueryParams = (page, limit) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit)
+    })
+    if (memoizedFilters.search) params.append('search', memoizedFilters.search)
+    if (memoizedFilters.status) params.append('status', memoizedFilters.status)
+    if (memoizedFilters.diagnosticTest) params.append('diagnosticTest', memoizedFilters.diagnosticTest)
+    if (memoizedFilters.classTime) params.append('classTime', memoizedFilters.classTime)
+    return params
+  }
+
+  const exportToCSV = async () => {
     const headers = [
-      'Name', 'Email', 'Phone', 'High School', 'GPA', 'Class Rigor', 
+      'Name', 'Email', 'Phone', 'High School', 'GPA', 'Class Rigor',
       'University Preference', 'Class Time', 'Diagnostic Test Date', 'Graduation Year', 'Status', 'Submitted At'
     ]
-    
-    const csvData = students.map(student => [
-      `${student.firstName || 'N/A'} ${student.lastName || 'N/A'}`,
-      student.email || 'N/A',
-      student.phoneNumber || 'N/A',
-      student.highSchoolName || 'N/A',
-      student.currentGPA || 'N/A',
-      student.classRigor || 'N/A',
-      student.universitiesWant || 'N/A',
-      formatScheduleOption(student.classTime, 'classTime'),
-      formatScheduleOption(student.diagnosticTestDate, 'diagnosticTest'),
-      displayGraduationYear(student.graduationYear),
-      student.status || 'N/A',
-      student.submittedAt ? new Date(student.submittedAt).toLocaleDateString() : 'N/A'
-    ])
 
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
-    ].join('\n')
+    setExportingCsv(true)
+    try {
+      const exportLimit = 10000
+      const params = buildStudentsListQueryParams(1, exportLimit)
+      const response = await fetch(`/api/students?${params}`)
+      const data = await response.json()
 
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.setAttribute('hidden', '')
-    a.setAttribute('href', url)
-    a.setAttribute('download', `students_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch students for export')
+      }
+
+      const rows = data.students || []
+      const csvData = rows.map((student) => [
+        `${student.firstName || 'N/A'} ${student.lastName || 'N/A'}`,
+        student.email || 'N/A',
+        student.phoneNumber || 'N/A',
+        student.highSchoolName || 'N/A',
+        student.currentGPA || 'N/A',
+        student.classRigor || 'N/A',
+        student.universitiesWant || 'N/A',
+        formatScheduleOption(student.classTime, 'classTime'),
+        formatScheduleOption(student.diagnosticTestDate, 'diagnosticTest'),
+        displayGraduationYear(student.graduationYear),
+        student.status || 'N/A',
+        student.submittedAt ? new Date(student.submittedAt).toLocaleDateString() : 'N/A'
+      ])
+
+      const csvContent = [headers.join(','), ...csvData.map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(','))].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.setAttribute('hidden', '')
+      a.setAttribute('href', url)
+      a.setAttribute('download', `students_${new Date().toISOString().split('T')[0]}.csv`)
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      const hasActiveFilters =
+        !!(memoizedFilters.search || memoizedFilters.status || memoizedFilters.diagnosticTest || memoizedFilters.classTime)
+      toast.success(
+        hasActiveFilters
+          ? `Exported ${rows.length} student(s) matching current filters.`
+          : `Exported ${rows.length} student(s).`
+      )
+    } catch (error) {
+      console.error('CSV export failed:', error)
+      toast.error(error.message || 'Failed to export CSV')
+    } finally {
+      setExportingCsv(false)
+    }
   }
 
   const getStatusBadge = (status) => {
@@ -680,9 +734,13 @@ const StudentTable = () => {
                 <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
-              <Button onClick={exportToCSV} size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
+              <Button onClick={exportToCSV} size="sm" disabled={exportingCsv}>
+                {exportingCsv ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                {exportingCsv ? 'Exporting…' : 'Export CSV'}
               </Button>
             </div>
           </div>
@@ -735,6 +793,7 @@ const StudentTable = () => {
               disabled={loadingScheduleOptions}
             >
               <option value="">All Diagnostic Tests</option>
+              <option value={DIAGNOSTIC_ALTERNATIVE_FILTER_VALUE}>{DIAGNOSTIC_ALTERNATIVE_FILTER_LABEL}</option>
               {loadingScheduleOptions ? (
                 <option disabled>Loading...</option>
               ) : (
@@ -846,11 +905,15 @@ const StudentTable = () => {
                               {loadingScheduleOptions ? (
                                 <option disabled>Loading...</option>
                               ) : (
-                                diagnosticTestOptions.map((option) => (
-                                  <option key={option.name || option} value={option.name || option}>
-                                    {option.name || option}
-                                  </option>
-                                ))
+                                diagnosticSelectOptions.map((option) => {
+                                  const value = option.name || option
+                                  const label = option.isAlternativeOption ? DIAGNOSTIC_ALTERNATIVE_EDIT_LABEL : value
+                                  return (
+                                    <option key={value} value={value}>
+                                      {label}
+                                    </option>
+                                  )
+                                })
                               )}
                             </select>
                           ) : (

@@ -252,6 +252,14 @@ export async function GET(request) {
         query.diagnosticTestDate = { $regex: 'Sunday', $options: 'i' };
       } else if (diagnosticTest === 'cannot') {
         query.diagnosticTestDate = { $regex: 'can\'t make either', $options: 'i' };
+      } else if (diagnosticTest === 'alternative') {
+        // Registration sentinel + legacy "either" wording (can't attend scheduled tests)
+        query.diagnosticTestDate = {
+          $regex: "can.t make (any of these dates|either)",
+          $options: 'i'
+        };
+      } else {
+        query.diagnosticTestDate = diagnosticTest;
       }
     }
     if (classTime) {
