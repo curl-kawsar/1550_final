@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 390 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Rectangle 61">
+<path d="M0 16C0 7.16344 7.16344 0 16 0H374C382.837 0 390 7.16344 390 16V190.745C390 199.232 386.629 207.371 380.627 213.373L333.373 260.627C327.371 266.629 319.232 270 310.745 270H16C7.16344 270 0 262.837 0 254V16Z" fill="var(--fill-0, #252525)" fill-opacity="0.4"/>
+<path d="M16 1H374C382.284 1 389 7.71573 389 16V190.745C389 198.967 385.734 206.851 379.92 212.665L332.665 259.92C326.851 265.734 318.967 269 310.745 269H16C7.71573 269 1 262.284 1 254V16C1 7.71573 7.71573 1 16 1Z" stroke="var(--stroke-0, white)" stroke-opacity="0.1" stroke-width="2"/>
+</g>
+</svg>

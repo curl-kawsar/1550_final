@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Inter_Tight } from 'next/font/google';
 import { useEffect, useRef, useState } from 'react';
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
-  weight: ['400'],
+  weight: ['300', '400'],
   display: 'swap',
 });
 
@@ -14,26 +15,43 @@ const STAGGER_BLOCK_S = 0.055;
 const BLOCK_DURATION_S = 0.62;
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
-const MASKS = [
+/** Program cards — exported PNG figures from Figma (node 181:990); overlap top of panel. */
+const PROGRAM_CARDS = [
   {
-    id: 'left',
-    src: '/your-path/mask-left.svg',
-    /** Shortest peak — left in sequence */
-    heightClass: 'h-[220px] sm:h-[300px] md:h-[340px] lg:h-[380px]',
-    widthClass: 'max-w-[200px] sm:max-w-[240px] md:max-w-[260px]',
+    id: 'foundations',
+    title: 'Foundations',
+    description:
+      'Targeted skill rebuilding to strengthen core math or reading skills',
+    figureSrc: '/your-path/card-foundations-figure.png',
+    figureWidth: 210,
+    figureHeight: 269,
+    figureMaxClass:
+      'w-[min(210px,72vw)] sm:w-[min(210px,68vw)] lg:w-[210px]',
+    figureLiftClass: '-translate-y-[6%] sm:-translate-y-[8%] lg:-translate-y-[12%]',
   },
   {
-    id: 'mid',
-    src: '/your-path/mask-mid.svg',
-    heightClass: 'h-[260px] sm:h-[340px] md:h-[400px] lg:h-[440px]',
-    widthClass: 'max-w-[210px] sm:max-w-[250px] md:max-w-[270px]',
+    id: 'intensive',
+    title: 'Intensive Prep',
+    description:
+      'Intensive group classes or one-on-one tutoring to reach 1400+',
+    figureSrc: '/your-path/card-intensive-figure.png',
+    figureWidth: 239,
+    figureHeight: 289,
+    figureMaxClass:
+      'w-[min(239px,78vw)] sm:w-[min(239px,72vw)] lg:w-[239px]',
+    figureLiftClass: '-translate-y-[10%] sm:-translate-y-[12%] lg:-translate-y-[16%]',
   },
   {
-    id: 'right',
-    src: '/your-path/mask-right.svg',
-    /** Tallest peak — right in sequence (mask viewBox is also taller) */
-    heightClass: 'h-[300px] sm:h-[380px] md:h-[460px] lg:h-[500px]',
-    widthClass: 'max-w-[220px] sm:max-w-[260px] md:max-w-[280px]',
+    id: 'last100',
+    title: 'The Last 100 Program',
+    description:
+      'Specialized training for 1450+ scorers, ready to go for the top 1%',
+    figureSrc: '/your-path/card-last100-figure.png',
+    figureWidth: 250,
+    figureHeight: 319,
+    figureMaxClass:
+      'w-[min(250px,82vw)] sm:w-[min(250px,76vw)] lg:w-[250px]',
+    figureLiftClass: '-translate-y-[12%] sm:-translate-y-[14%] lg:-translate-y-[18%]',
   },
 ];
 
@@ -59,38 +77,51 @@ function StaggerReveal({ children, delayIndex, active, reduceMotion, className =
   );
 }
 
-function MaskedPathPeak({ maskSrc, heightClass, widthClass, stackIndex = 0 }) {
-  const z =
-    stackIndex === 0 ? 'md:z-10' : stackIndex === 1 ? 'md:z-20' : 'md:z-30';
+function ProgramCard({ card }) {
   return (
-    <div
-      className={`relative mx-auto w-full md:mx-0 ${widthClass} ${z} shrink-0`}
-    >
+    <article className="relative mx-auto w-full max-w-[390px] self-end overflow-visible pb-6">
       <div
-        className={`relative w-full overflow-hidden ${heightClass}`}
-        style={{
-          WebkitMaskImage: `url(${maskSrc})`,
-          maskImage: `url(${maskSrc})`,
-          WebkitMaskSize: '100% 100%',
-          maskSize: '100% 100%',
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-          WebkitMaskPosition: 'center bottom',
-          maskPosition: 'center bottom',
-        }}
+        className={`pointer-events-none relative z-30 mx-auto flex min-h-[min(200px,52vw)] shrink-0 justify-center sm:min-h-[min(240px,48vw)] lg:min-h-[300px] ${card.figureLiftClass}`}
       >
-        <img
-          src="/your-path/path-photo.png"
-          alt=""
-          className="absolute inset-0 block size-full max-w-none object-cover object-center"
-        />
+        <div className={`relative shrink-0 -left-16 top-16 sm:-left-16 sm:top-16 lg:-left-16 lg:top-16 ${card.figureMaxClass}`}>
+          <Image
+            src={card.figureSrc}
+            alt=""
+            width={card.figureWidth}
+            height={card.figureHeight}
+            className="pointer-events-none block h-auto w-full object-contain object-bottom"
+            sizes="(max-width: 640px) 72vw, (max-width: 1024px) 280px, 280px"
+          />
+        </div>
       </div>
-    </div>
+
+      {/* Card panel: sits under the figure; overlap matches reference */}
+      <div className="relative z-20 -mt-[clamp(3.25rem,14vw,5.5rem)] h-[270px] w-full overflow-visible">
+        <img
+          src="/your-path/card-frame.svg"
+          alt=""
+          className="pointer-events-none absolute inset-0 z-0 size-full object-fill"
+          width={390}
+          height={270}
+        />
+        <div className="relative z-10 flex h-full flex-col justify-end px-[clamp(1.25rem,6vw,2rem)] pb-5 pt-[5.5rem] sm:pb-6 sm:pt-[5.75rem] lg:px-8 lg:pb-7 lg:pt-24">
+          <h3
+            className="font-norwester text-[clamp(1.35rem,3.8vw,2.25rem)] uppercase leading-none text-[#2a4dff] lg:text-[30px]"
+            style={{ fontFeatureSettings: "'liga' off" }}
+          >
+            {card.title}
+          </h3>
+          <p className="mt-3 text-[clamp(0.9375rem,2.1vw,1.25rem)] leading-[1] text-white/[0.8] lg:mt-[14px] lg:max-w-[310px] lg:text-[20px]">
+            {card.description}
+          </p>
+        </div>
+      </div>
+    </article>
   );
 }
 
 /**
- * Figma node 181:990 — “Your path to 1550+”, podium art, three peaks, supporting copy.
+ * Figma node 181:990 — “Your path to 1550+”, two-column story, program cards, CTA.
  * Usage: `import YourPath from '@/components/landing-page/yourPath'`
  */
 export default function YourPath() {
@@ -123,46 +154,48 @@ export default function YourPath() {
     return () => obs.disconnect();
   }, [reduceMotion]);
 
+  const figureSrc = '/your-path/figure-photo.png';
+
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden bg-[#010516] px-6 py-10 sm:py-12 lg:px-12 lg:py-14 xl:px-[115px] ${interTight.className}`}
+      className={`relative h-fit min-h-0 overflow-x-clip bg-[#010516] px-6 py-10 sm:py-12 lg:px-12 lg:py-14 xl:px-[115px] ${interTight.className}`}
     >
       <div
-        className="pointer-events-none absolute left-1/2 top-[12%] h-[min(882px,120vw)] w-[min(1246px,200vw)] max-w-none -translate-x-1/2 opacity-80 sm:translate-x-[10%]"
+        className="pointer-events-none absolute left-1/2 top-[4%] h-[min(882px,130vw)] w-[min(1246px,220vw)] max-w-none -translate-x-1/2 opacity-80 sm:left-[calc(50%+min(18vw,200px))] lg:top-[5%]"
         aria-hidden
       >
         <div className="relative size-full rotate-[30deg]">
           <img
-            src="/your-path/glow-1.svg"
+            src="/your-path/glow-a.svg"
             alt=""
-            className="block size-full max-w-none object-contain"
+            className="block size-full max-w-none object-contain object-center"
           />
         </div>
       </div>
       <div
-        className="pointer-events-none absolute bottom-[-5%] left-1/2 h-[min(882px,120vw)] w-[min(1246px,200vw)] max-w-none -translate-x-1/2 opacity-70 sm:-translate-x-[35%]"
+        className="pointer-events-none absolute bottom-[0%] left-1/2 h-[min(882px,130vw)] w-[min(1246px,220vw)] max-w-none -translate-x-1/2 opacity-70 sm:left-[calc(50%-min(22vw,240px))]"
         aria-hidden
       >
         <div className="relative size-full -scale-y-100 rotate-[150deg]">
           <img
-            src="/your-path/glow-2.svg"
+            src="/your-path/glow-b.svg"
             alt=""
-            className="block size-full max-w-none object-contain"
+            className="block size-full max-w-none object-contain object-center"
           />
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1236px] flex-col items-center gap-3 text-center sm:gap-4 lg:gap-5">
-        <header>
-          <h2 className="flex flex-wrap items-end justify-center gap-1.5 sm:gap-2">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1236px] flex-col items-center gap-8 sm:gap-10 lg:gap-12">
+        <header className="w-full text-center">
+          <h2 className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-[12px]">
             <StaggerReveal
               delayIndex={0}
               active={active}
               reduceMotion={reduceMotion}
               className="shrink-0"
             >
-              <span className="font-['Norwester',sans-serif] text-[clamp(1.75rem,4.5vw,3rem)] uppercase leading-none tracking-wide text-white lg:text-[48px]">
+              <span className="font-norwester text-[clamp(1.375rem,4.2vw,3rem)] uppercase leading-none tracking-wide text-white lg:text-[48px]">
                 Your Path to
               </span>
             </StaggerReveal>
@@ -172,81 +205,67 @@ export default function YourPath() {
               reduceMotion={reduceMotion}
               className="shrink-0"
             >
-              <div className="relative h-[clamp(3.25rem,8vw,4.25rem)] w-[clamp(6.5rem,18vw,8.125rem)] shrink-0">
-                <img
-                  src="/your-path/logo-frame.svg"
-                  alt=""
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 block size-full object-contain"
+              <span className="relative inline-block h-[clamp(2.75rem,8vw,4.375rem)] w-[clamp(6.5rem,22vw,8.004rem)] shrink-0">
+                <Image
+                  src="/your-path/logo-1550.png"
+                  alt="1550+"
+                  width={128}
+                  height={70}
+                  className="size-full object-contain object-center"
+                  sizes="(max-width: 640px) 120px, 128px"
                 />
-                <img
-                  src="/your-path/logo-inner.svg"
-                  alt=""
-                  aria-hidden
-                  className="pointer-events-none absolute inset-[10%] block size-[80%] max-h-[80%] max-w-[80%] object-contain"
-                />
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center gap-0.5 pr-[8%] font-['Norwester',sans-serif] leading-none drop-shadow-[0_1.6px_1.6px_rgba(0,24,147,0.4)]">
-                  <span className="bg-gradient-to-b from-[#fefefe] from-[36%] to-[#aaa] bg-clip-text text-[clamp(1.5rem,4.2vw,2.75rem)] text-transparent">
-                    1550
-                  </span>
-                  <span className="text-[clamp(1.25rem,3.5vw,2.4rem)] text-white">
-                    +
-                  </span>
-                </span>
-              </div>
+              </span>
             </StaggerReveal>
           </h2>
         </header>
 
-        <div className="relative w-full max-w-[597px]">
-          <Image
-            src="/your-path/hero-podium.png"
-            alt="Students on a podium representing different starting levels"
-            width={597}
-            height={761}
-            className="h-auto w-full object-contain"
-            sizes="(max-width: 768px) 100vw, 597px"
-            priority={false}
-          />
+        <div className="grid w-full max-w-[1236px] grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-x-10 xl:gap-x-[74px]">
+          <div className="relative mx-auto w-full max-w-[393px] justify-self-center lg:justify-self-start">
+            <Image
+              src="/your-path/hero-left.png"
+              alt="Students at different levels on a podium"
+              width={393}
+              height={502}
+              className="h-auto w-full object-contain"
+              sizes="(max-width: 1024px) 90vw, 393px"
+            />
+          </div>
+
+          <StaggerReveal
+            delayIndex={2}
+            active={active}
+            reduceMotion={reduceMotion}
+            className="flex w-full max-w-[698px] flex-col gap-4 text-[rgba(255,255,255,0.8)] lg:justify-self-end"
+          >
+            <div className="flex flex-col gap-4 text-[clamp(1.0625rem,2.2vw,1.5rem)] leading-normal lg:text-[24px]">
+              <p>
+                There is no single path to a top 1% score, because students do
+                not all begin in the same place.
+              </p>
+              <p>
+                Some students need to rebuild their foundation before momentum
+                is possible, others are ready to train hard immediately, and a
+                select few are already scoring at an elite level and need the
+                final layer of precision that most programs cannot provide.
+              </p>
+            </div>
+          </StaggerReveal>
         </div>
 
-        <StaggerReveal
-          delayIndex={2}
-          active={active}
-          reduceMotion={reduceMotion}
-          className="w-full max-w-[716px]"
-        >
-          <p className="text-[clamp(1.05rem,2.4vw,2rem)] leading-snug text-white/[0.8] lg:text-[32px] lg:leading-normal">
-            There is no single path to a top 1% score, because students do not
-            all begin in the same place.{' '}
-          </p>
-        </StaggerReveal>
-
-        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-2 md:flex-row md:items-end md:justify-center md:gap-0 md:-space-x-8 lg:-space-x-12 xl:-space-x-16">
-          {MASKS.map((m, i) => (
-            <MaskedPathPeak
-              key={m.id}
-              maskSrc={m.src}
-              heightClass={m.heightClass}
-              widthClass={m.widthClass}
-              stackIndex={i}
-            />
+        <div className="flex w-full max-w-[1236px] flex-wrap items-end content-end justify-center gap-8 md:gap-6 lg:gap-[26px]">
+          {PROGRAM_CARDS.map((card) => (
+            <ProgramCard key={card.id} card={card} />
           ))}
         </div>
 
-        <StaggerReveal
-          delayIndex={3}
-          active={active}
-          reduceMotion={reduceMotion}
-          className="w-full max-w-[995px]"
-        >
-          <p className="text-[clamp(1.05rem,2.4vw,2rem)] leading-snug text-white/[0.8] lg:text-[32px] lg:leading-normal">
-            Some students need to rebuild their foundation before momentum is
-            possible, others are ready to train hard immediately, and a select
-            few are already scoring at an elite level and need the final layer of
-            precision that most programs cannot provide.
-          </p>
-        </StaggerReveal>
+        <div className="flex w-full justify-center pt-2 sm:pt-4">
+          <Link
+            href="/register"
+            className="inline-flex items-center justify-center rounded-[33554400px] bg-[#2a4dff] px-[21px] py-4 text-center text-[16px] font-medium leading-6 text-white shadow-[0_0_28px_rgba(42,77,255,0.45)] transition-[transform,box-shadow] hover:shadow-[0_0_36px_rgba(42,77,255,0.55)] active:scale-[0.99]"
+          >
+            Explore Programs
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -63,9 +63,15 @@ export default {
   				'0%': { transform: 'translate3d(0,0,0)' },
   				'100%': { transform: 'translate3d(-50%,0,0)' },
   			},
+  			'crystal-float': {
+  				'0%, 100%': { transform: 'translateY(0)' },
+  				'50%': { transform: 'translateY(-50px)' },
+  			},
   		},
   		animation: {
   			'hiw-marquee': 'hiw-marquee 38s linear infinite',
+  			'crystal-float':
+  				'crystal-float 10.5s ease-in-out infinite',
   		},
   	}
   },

@@ -52,7 +52,7 @@
   margin: 0;
 }
 
-.hero-title span {
+.hero-title .hero-title-accent {
   color: #2a4dff;
 }
 

@@ -5,7 +5,7 @@ import { Inter_Tight } from 'next/font/google';
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
-  weight: ['400'],
+  weight: ['300'],
   display: 'swap',
 });
 
@@ -95,83 +95,94 @@ const Unlock = () => {
     return () => obs.disconnect();
   }, [reduceMotion]);
 
+  /** Figma: Norwester 48px / 52px accent; fluid below xl */
+  const headlineWhiteCls =
+    'text-[clamp(1.625rem,calc(0.75rem+3.25vw),3rem)] text-white xl:text-[48px]';
+
+  /** Accent "1%" one step larger than white per design */
+  const headlineAccentCls =
+    'text-[clamp(1.75rem,calc(0.8125rem+3.45vw),3.25rem)] text-[#2a4dff] xl:text-[52px]';
+
+  /** Figma body: Inter Tight 36px, rgba white 85% */
+  const bodyCls = `text-[clamp(1rem,3.2vw,2.25rem)] leading-[1] text-white/[0.85] xl:text-[36px]`;
+
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden bg-[#010516] px-6 py-12 sm:px-10 sm:py-14 lg:px-16 lg:py-[60px] xl:px-[115px] ${interTight.className}`}
+      className="relative overflow-hidden bg-[#010516] px-6 py-12 sm:py-24 sm:px-10  lg:px-16 xl:px-[115px]"
     >
-      {/* Background glow */}
+      {/* Background glow — Figma: 1277×281, center at 50%+486px from top 137 */}
       <div
-        className="pointer-events-none absolute left-1/2 top-[80px] h-[281px] w-[min(1277px,220vw)] max-w-none -translate-x-1/2 sm:left-auto sm:right-0 sm:top-[100px] sm:translate-x-[15%] lg:translate-x-[25%]"
+        className="pointer-events-none absolute left-[calc(50%+min(96px,18vw))] top-[72px] h-[281px] w-[min(1277px,calc(100vw+80px))] max-w-none -translate-x-1/2 sm:left-[calc(50%+min(180px,28vw))] sm:top-[100px] lg:left-[calc(50%+486px)] lg:top-[137px] lg:w-[1277px] lg:-translate-x-1/2"
         aria-hidden
       >
-        <img
-          alt=""
-          src="/unlock-section/ellipse-glow.svg"
-          className="block h-full w-full max-w-none object-contain object-center opacity-90"
-        />
+        <div className="absolute inset-[-120%_-27%] sm:inset-[-100%_-24%] lg:inset-[-124.56%_-27.41%]">
+          <img
+            alt=""
+            src="/unlock-section/ellipse-glow.svg"
+            className="absolute block h-full w-full max-w-none object-contain object-center opacity-90"
+          />
+        </div>
       </div>
 
-      <div className="relative z-10 flex w-full max-w-[1200px] flex-col gap-6 lg:gap-6">
-        <div className="flex flex-col gap-5 lg:gap-6">
-          {/* Headline row */}
-          <h2 className="flex flex-wrap items-baseline gap-x-2.5 gap-y-2 text-left font-['Norwester',sans-serif] uppercase not-italic leading-none tracking-[0.02em]">
-            <span className="text-[clamp(1.75rem,5vw,3rem)] text-white">
-              {mapTextToWords(HEADLINE, active, reduceMotion, nextIndex)}
-            </span>
-            {/* Icon + 1% inline with the headline baseline */}
-            <span className="inline-flex shrink-0 items-baseline gap-2 sm:gap-2.5">
-              <span className="inline-block overflow-hidden pb-[0.12em]">
-                <span
-                  className="inline-block transition-[transform,opacity] will-change-transform"
-                  style={{
-                    transitionDuration: reduceMotion ? '0ms' : `${DURATION_S}s`,
-                    transitionTimingFunction: EASE,
-                    transitionDelay: reduceMotion
-                      ? '0ms'
-                      : `${nextIndex() * STAGGER_S}s`,
-                    transform:
-                      reduceMotion || active ? 'translateY(0)' : 'translateY(110%)',
-                    opacity: reduceMotion || active ? 1 : 0,
-                  }}
-                >
-                  <img
-                    src="/unlock-section/vector-1pct.svg"
-                    alt=""
-                    width={77}
-                    height={96}
-                    className="h-[48px] w-auto object-contain sm:h-[64px] lg:h-[80px]"
-                  />
-                </span>
-              </span>
-              <span className="inline-block overflow-hidden pb-[0.12em]">
-                <span
-                  className="inline-block text-[clamp(1.75rem,5vw,3rem)] text-[#2a4dff] transition-[transform,opacity] will-change-transform"
-                  style={{
-                    transitionDuration: reduceMotion ? '0ms' : `${DURATION_S}s`,
-                    transitionTimingFunction: EASE,
-                    transitionDelay: reduceMotion
-                      ? '0ms'
-                      : `${nextIndex() * STAGGER_S}s`,
-                    transform:
-                      reduceMotion || active ? 'translateY(0)' : 'translateY(110%)',
-                    opacity: reduceMotion || active ? 1 : 0,
-                  }}
-                >
-                  1%
-                </span>
+      <div className="relative container py-8 mx-auto z-10 flex w-full flex-col gap-6 lg:gap-6">
+        {/* Figma: row gap 16px, items-end; stack on small screens */}
+        <h2 className="flex w-full flex-col items-start gap-3 min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:items-end min-[480px]:gap-4">
+          <span
+            className={`font-['Norwester',sans-serif] uppercase not-italic leading-none tracking-[0.02em] ${headlineWhiteCls}`}
+          >
+            {mapTextToWords(HEADLINE, active, reduceMotion, nextIndex)}
+          </span>
+          <span className="inline-flex shrink-0 items-end gap-3 min-[480px]:gap-4">
+            <span className="inline-block overflow-hidden pb-[0.12em]">
+              <span
+                className="inline-block transition-[transform,opacity] will-change-transform"
+                style={{
+                  transitionDuration: reduceMotion ? '0ms' : `${DURATION_S}s`,
+                  transitionTimingFunction: EASE,
+                  transitionDelay: reduceMotion
+                    ? '0ms'
+                    : `${nextIndex() * STAGGER_S}s`,
+                  transform:
+                    reduceMotion || active ? 'translateY(0)' : 'translateY(110%)',
+                  opacity: reduceMotion || active ? 1 : 0,
+                }}
+              >
+                <img
+                  src="/unlock-section/vector-1pct.svg"
+                  alt=""
+                  width={77}
+                  height={96}
+                  className="h-[clamp(40px,11vw,96px)] w-[min(77px,19vw)] object-contain sm:h-[min(80px,18vw)] lg:h-[96px] lg:w-[77px]"
+                />
               </span>
             </span>
-          </h2>
+            <span className="inline-block overflow-hidden pb-[0.12em]">
+              <span
+                className={`inline-block font-['Norwester',sans-serif] uppercase not-italic leading-none transition-[transform,opacity] will-change-transform ${headlineAccentCls}`}
+                style={{
+                  transitionDuration: reduceMotion ? '0ms' : `${DURATION_S}s`,
+                  transitionTimingFunction: EASE,
+                  transitionDelay: reduceMotion
+                    ? '0ms'
+                    : `${nextIndex() * STAGGER_S}s`,
+                  transform:
+                    reduceMotion || active ? 'translateY(0)' : 'translateY(110%)',
+                  opacity: reduceMotion || active ? 1 : 0,
+                }}
+              >
+                1%
+              </span>
+            </span>
+          </span>
+        </h2>
 
-          {/* Body paragraphs */}
-          <p className="max-w-[900px] text-[clamp(0.9375rem,2vw,1.375rem)] leading-[1.6] text-white/[0.85]">
-            {mapTextToWords(BODY_1, active, reduceMotion, nextIndex)}
-          </p>
-          <p className="max-w-[900px] text-[clamp(0.9375rem,2vw,1.375rem)] leading-[1.6] text-white/[0.85]">
-            {mapTextToWords(BODY_2, active, reduceMotion, nextIndex)}
-          </p>
-        </div>
+        <p className={`w-full ${bodyCls} ${interTight.className}`}>
+          {mapTextToWords(BODY_1, active, reduceMotion, nextIndex)}
+        </p>
+        <p className={`w-full ${bodyCls} ${interTight.className}`}>
+          {mapTextToWords(BODY_2, active, reduceMotion, nextIndex)}
+        </p>
       </div>
     </section>
   );

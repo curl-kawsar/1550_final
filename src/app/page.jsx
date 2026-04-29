@@ -6,6 +6,7 @@ import HowItWorks from '@/components/landing-page/HowItWorks';
 import ProveYourself from '@/components/landing-page/ProveYourself';
 import Unlock from '@/components/landing-page/Unlock';
 import HowItWorks2 from '@/components/landing-page/howitswork_2';
+import Success from '@/components/landing-page/success';
 import Philosophy from '@/components/landing-page/Philosophy';
 import YourPath from '@/components/landing-page/yourPath';
 
@@ -17,6 +18,7 @@ const Home = () => {
       <HowItWorks />
       <MidPoint />
       <HowItWorks2 />
+      <Success />
       <Philosophy />
       <YourPath />
       <Testimonial />
