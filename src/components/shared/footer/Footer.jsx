@@ -1,11 +1,18 @@
 'use client';
 
-import {Facebook, Instagram, Youtube} from 'lucide-react';
+import {ArrowUpRight, Facebook, Instagram} from 'lucide-react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {useState} from 'react';
 import {useSubmitContact} from '@/hooks/useContact';
+import '@/components/landing-page/landing.css';
+
+const sectionLabel =
+  'text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45';
+
+const linkClass =
+  'text-sm text-white/70 hover:text-white transition-colors duration-200';
 
 const Footer = () => {
   const [contactForm, setContactForm] = useState({
@@ -24,7 +31,6 @@ const Footer = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (
       !contactForm.firstName ||
       !contactForm.lastName ||
@@ -36,7 +42,6 @@ const Footer = () => {
 
     submitContactMutation.mutate(contactForm, {
       onSuccess: () => {
-        // Reset form on success
         setContactForm({
           firstName: '',
           lastName: '',
@@ -47,220 +52,177 @@ const Footer = () => {
     });
   };
 
+  const fieldClass =
+    'rounded-lg border-white/12 bg-[#050b1a]/90 text-white placeholder:text-white/38 ' +
+    'focus-visible:border-[#457BF5] focus-visible:ring-1 focus-visible:ring-[#457BF5]/80 ' +
+    'shadow-none';
+
   return (
-    <footer className="bg-black text-white relative overflow-hidden">
-      {/* Background Pattern */}
+    <footer className="relative w-full max-w-none overflow-hidden border-t border-white/[0.06] bg-[#010516] text-white">
       <div
-        className="absolute inset-0 opacity-10"
+        className="pointer-events-none absolute inset-0 opacity-[0.32]"
+        aria-hidden
         style={{
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, white 2px, transparent 0)',
-          backgroundSize: '20px 20px',
+          background:
+            'radial-gradient(ellipse 80% 55% at 50% -20%, rgba(42, 77, 255, 0.38), transparent 55%)',
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
-        {/* Logo Section */}
-        <div className="flex justify-left mb-16">
-          <Link href="/" className="flex items-center">
-            <img src="/logo.png" alt="1550+ Logo" className="h-12 w-auto" />
-          </Link>
-        </div>
+      <div className="relative z-10 w-full px-4 py-16 sm:px-6 lg:px-10 xl:px-14 2xl:px-16 lg:py-20">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10 xl:gap-14">
+          <div className="lg:col-span-4">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <img src="/logo.png" alt="1550+ Logo" className="h-11 w-auto" />
+            </Link>
+            <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/60">
+              SAT prep, admissions, and scholarships for students who aim
+              higher.
+            </p>
+            <p className="mt-6 text-sm text-white/45">
+              We respect your privacy. Messages go to our team only.
+            </p>
+          </div>
 
-        {/* Main Content - 3 Column Design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-16">
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-6 text-white">
-              Quick Link
-            </h3>
-            <ul className="space-y-4">
+          <div className="lg:col-span-2">
+            <p className={sectionLabel}>Navigate</p>
+            <ul className="mt-5 space-y-3">
               <li>
-                <Link
-                  href="/"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
+                <Link href="/" className={linkClass}>
                   Home
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/about"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
+                <Link href="/about" className={linkClass}>
                   About
                 </Link>
               </li>
-              {/* <li>
-                <Link
-                  href="/services"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Services
-                </Link>
-              </li> */}
-              {/* <li>
-                <Link
-                  href="/team"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Meet Your Team
-                </Link>
-              </li> */}
               <li>
-                <Link
-                  href="/contact"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Contact Us
+                <Link href="/contact" className={linkClass}>
+                  Contact
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Services */}
-          {/* <div>
-            <h3 className="text-lg font-semibold mb-6 text-white">Services</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link
-                  href="/services/test-prep"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Test Prep
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services/admissions"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Admissions Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services/internship"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Internship
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/events"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Events
-                </Link>
-              </li>
-            </ul>
-          </div> */}
-
-          {/* Socials */}
-          <div>
-            <h3 className="text-lg font-semibold mb-6 text-white">Socials</h3>
-            <div className="space-y-4">
+          <div className="lg:col-span-3">
+            <p className={sectionLabel}>Connect</p>
+            <p className="mt-5 text-sm text-white/55">
+              Follow College Mastermind for tips and updates.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="https://www.facebook.com/collegemastermindUSA"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
-                <span>Facebook</span>
+                <Facebook className="h-5 w-5" strokeWidth={1.75} />
               </a>
               <a
                 href="https://www.instagram.com/collegemastermind"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
-                <span>Instagram</span>
+                <Instagram className="h-5 w-5" strokeWidth={1.75} />
               </a>
-              {/* <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-              >
-                <Youtube className="h-5 w-5" />
-                <span>Youtube</span>
-              </a> */}
-              {/* <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-              >
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-.88-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
-                </svg>
-                <span>TikTok</span>
-              </a> */}
             </div>
           </div>
 
-          {/* Get in Touch */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2 text-white">
-              Get in touch
-            </h3>
-            <p className="text-gray-300 mb-6 text-sm">
-              You can reach us anytime
-            </p>
+          <div className="lg:col-span-3">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#071028]/70 p-6 shadow-[0_24px_80px_-28px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7">
+              <p className={sectionLabel}>Get in touch</p>
+              <p className="mt-4 text-sm text-white/60">
+                You can reach us anytime. We typically reply within one business
+                day.
+              </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleSubmit} className="mt-6 space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    type="text"
+                    placeholder="First name"
+                    value={contactForm.firstName}
+                    onChange={(e) =>
+                      handleInputChange('firstName', e.target.value)
+                    }
+                    className={fieldClass}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Last name"
+                    value={contactForm.lastName}
+                    onChange={(e) =>
+                      handleInputChange('lastName', e.target.value)
+                    }
+                    className={fieldClass}
+                  />
+                </div>
+
                 <Input
-                  type="text"
-                  placeholder="First name"
-                  value={contactForm.firstName}
-                  onChange={(e) =>
-                    handleInputChange('firstName', e.target.value)
-                  }
-                  className="bg-transparent border-gray-600 text-white placeholder:text-gray-400 focus:border-white"
+                  type="email"
+                  placeholder="Email"
+                  value={contactForm.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={fieldClass}
                 />
-                <Input
-                  type="text"
-                  placeholder="Last name"
-                  value={contactForm.lastName}
+
+                <textarea
+                  placeholder="Your message"
+                  value={contactForm.message}
                   onChange={(e) =>
-                    handleInputChange('lastName', e.target.value)
+                    handleInputChange('message', e.target.value)
                   }
-                  className="bg-transparent border-gray-600 text-white placeholder:text-gray-400 focus:border-white"
+                  className={[
+                    fieldClass,
+                    'min-h-[5.5rem] w-full resize-none px-3 py-2.5 text-sm',
+                  ].join(' ')}
+                  rows={4}
                 />
-              </div>
 
-              <Input
-                type="email"
-                placeholder="Your mail"
-                value={contactForm.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="bg-transparent border-gray-600 text-white placeholder:text-gray-400 focus:border-white"
-              />
-
-              <textarea
-                placeholder="Tell us"
-                value={contactForm.message}
-                onChange={(e) => handleInputChange('message', e.target.value)}
-                className="w-full px-3 py-2 bg-transparent border border-gray-600 rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:border-white resize-none h-24"
-              />
-
-              <Button
-                type="submit"
-                disabled={submitContactMutation.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 disabled:opacity-50"
-              >
-                {submitContactMutation.isPending ? 'Sending...' : 'Submit'}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  disabled={submitContactMutation.isPending}
+                  className="hero-cta-btn mt-2 w-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                >
+                  {submitContactMutation.isPending ? (
+                    'Sending…'
+                  ) : (
+                    <>
+                      Submit
+                      <ArrowUpRight
+                        className="hero-cta-icon"
+                        size={18}
+                        aria-hidden
+                      />
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-16 flex flex-col gap-4 border-t border-white/[0.08] pt-10 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-white/45">
+            © {new Date().getFullYear()} 1550plus. All rights reserved.
+          </p>
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap gap-x-6 gap-y-2 text-sm"
+          >
+            <Link href="/about" className="text-white/50 hover:text-white/80">
+              About
+            </Link>
+            <Link href="/contact" className="text-white/50 hover:text-white/80">
+              Contact
+            </Link>
+            <Link href="/register" className="text-white/50 hover:text-white/80">
+              Join
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>

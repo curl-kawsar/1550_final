@@ -109,7 +109,7 @@ const Unlock = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#010516] px-6 py-12 sm:py-24 sm:px-10  lg:px-16 xl:px-[115px]"
+      className="relative overflow-hidden bg-[#010516] py-12 sm:py-16"
     >
       {/* Background glow — Figma: 1277×281, center at 50%+486px from top 137 */}
       <div
@@ -125,15 +125,15 @@ const Unlock = () => {
         </div>
       </div>
 
-      <div className="relative container py-8 mx-auto z-10 flex w-full flex-col gap-6 lg:gap-6">
-        {/* Figma: row gap 16px, items-end; stack on small screens */}
-        <h2 className="flex w-full flex-col items-start gap-3 min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:items-end min-[480px]:gap-4">
+      <div className="relative z-10 container mx-auto flex w-full flex-col gap-6 py-8 px-6 sm:px-10 lg:gap-6 lg:px-16 xl:px-[115px]">
+        {/* Same inset as HowItWorks; left-aligned headline + body */}
+        <h2 className="flex w-full flex-col items-start gap-3 text-left min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:items-baseline min-[480px]:justify-start min-[480px]:gap-4">
           <span
             className={`font-['Norwester',sans-serif] uppercase not-italic leading-none tracking-[0.02em] ${headlineWhiteCls}`}
           >
             {mapTextToWords(HEADLINE, active, reduceMotion, nextIndex)}
           </span>
-          <span className="inline-flex shrink-0 items-end gap-3 min-[480px]:gap-4">
+          <span className="inline-flex shrink-0 items-baseline gap-3 min-[480px]:gap-4">
             <span className="inline-block overflow-hidden pb-[0.12em]">
               <span
                 className="inline-block transition-[transform,opacity] will-change-transform"
@@ -149,11 +149,11 @@ const Unlock = () => {
                 }}
               >
                 <img
-                  src="/unlock-section/vector-1pct.svg"
+                  src="/unlock-section/top.png"
                   alt=""
                   width={77}
                   height={96}
-                  className="h-[clamp(40px,11vw,96px)] w-[min(77px,19vw)] object-contain sm:h-[min(80px,18vw)] lg:h-[96px] lg:w-[77px]"
+                  className="h-[clamp(40px,11vw,96px)] w-[min(77px,19vw)] object-contain sm:h-[min(80px,18vw)] lg:h-[96px] lg:w-[100px]"
                 />
               </span>
             </span>
@@ -177,10 +177,10 @@ const Unlock = () => {
           </span>
         </h2>
 
-        <p className={`w-full ${bodyCls} ${interTight.className}`}>
+        <p className={`w-full text-left ${bodyCls} ${interTight.className}`}>
           {mapTextToWords(BODY_1, active, reduceMotion, nextIndex)}
         </p>
-        <p className={`w-full ${bodyCls} ${interTight.className}`}>
+        <p className={`w-full text-left ${bodyCls} ${interTight.className}`}>
           {mapTextToWords(BODY_2, active, reduceMotion, nextIndex)}
         </p>
       </div>

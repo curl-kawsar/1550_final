@@ -103,7 +103,7 @@ const Success = () => {
   return (
     <section
       ref={sectionRef}
-      className="bg-[#fefeff] px-5 py-12 sm:px-8 sm:py-14 md:px-12 lg:px-[115px] lg:py-[120px]"
+      className="bg-[#fefeff] px-5 py-12 sm:px-8 sm:py-14 md:px-12 lg:px-[115px] lg:py-40"
     >
       <div className="mx-auto flex w-full max-w-[1236px] flex-col items-center justify-center gap-5 sm:gap-[19px]">
         <h2 className="flex w-full max-w-full flex-col items-center justify-center gap-3 text-center sm:flex-row sm:flex-wrap sm:items-end sm:justify-center sm:gap-2 md:gap-3">
@@ -127,9 +127,9 @@ const Success = () => {
               >
                 <img
                   alt=""
-                  src="/success-section/goal-target.svg"
-                  width={93}
-                  height={93}
+                  src="/success-section/success.png"
+                  width={100}
+                  height={100}
                   className="h-[clamp(2.25rem,10vw,5.8rem)] w-[clamp(2.25rem,10vw,5.8rem)] object-contain"
                   decoding="async"
                 />

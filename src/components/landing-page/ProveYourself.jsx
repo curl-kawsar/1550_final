@@ -91,7 +91,7 @@ const ProveYourself = () => {
   }, [reducedMotion]);
 
   return (
-    <section className="hero-image">
+    <section className="hero-image" aria-label="Hero">
       <div
         className="absolute inset-0 z-[1] overflow-hidden"
         style={{
@@ -110,37 +110,40 @@ const ProveYourself = () => {
       </div>
 
       <div className="hero-content-wrap">
-        <div className="hero-content">
-          <h2 className="hero-title norwes">
-            <HeroStaggerLine index={0} reveal={reveal} reducedMotion={reducedMotion}>
-              HOW THE
-            </HeroStaggerLine>
-            <HeroStaggerLine index={1} reveal={reveal} reducedMotion={reducedMotion}>
-              TOP <span className="hero-title-accent">1%</span>
-            </HeroStaggerLine>
-            <HeroStaggerLine index={2} reveal={reveal} reducedMotion={reducedMotion}>
-              PREPS FOR
-            </HeroStaggerLine>
-            <HeroStaggerLine index={3} reveal={reveal} reducedMotion={reducedMotion}>
-              THE SAT.
-            </HeroStaggerLine>
-          </h2>
+        {/* Same horizontal inset as Unlock + HowItWorks (container + px axis) */}
+        <div className="container mx-auto w-full px-6 sm:px-10 lg:px-16 xl:px-[115px]">
+          <div className="hero-content">
+            <h2 className="hero-title norwes">
+              <HeroStaggerLine index={0} reveal={reveal} reducedMotion={reducedMotion}>
+                HOW THE
+              </HeroStaggerLine>
+              <HeroStaggerLine index={1} reveal={reveal} reducedMotion={reducedMotion}>
+                TOP <span className="hero-title-accent">1%</span>
+              </HeroStaggerLine>
+              <HeroStaggerLine index={2} reveal={reveal} reducedMotion={reducedMotion}>
+                PREPS FOR
+              </HeroStaggerLine>
+              <HeroStaggerLine index={3} reveal={reveal} reducedMotion={reducedMotion}>
+                THE SAT.
+              </HeroStaggerLine>
+            </h2>
 
-          <HeroStaggerFade index={BTN_INDEX} reveal={reveal} reducedMotion={reducedMotion}>
-            <Button
-              asChild
-              className="hero-cta-btn focus-visible:ring-0 focus-visible:ring-offset-0"
-            >
-              <Link
-                href="https://calendly.com/erin-donovan/collegeadmissions"
-                target="_blank"
-                rel="noopener noreferrer"
+            <HeroStaggerFade index={BTN_INDEX} reveal={reveal} reducedMotion={reducedMotion}>
+              <Button
+                asChild
+                className="hero-cta-btn focus-visible:ring-0 focus-visible:ring-offset-0"
               >
-                Book a Call
-                <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
-              </Link>
-            </Button>
-          </HeroStaggerFade>
+                <Link
+                  href="https://calendly.com/erin-donovan/collegeadmissions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Book a Call
+                  <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
+                </Link>
+              </Button>
+            </HeroStaggerFade>
+          </div>
         </div>
       </div>
     </section>

@@ -2,7 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Inter_Tight } from 'next/font/google';
+import './landing.css';
 import { useEffect, useRef, useState } from 'react';
 
 const interTight = Inter_Tight({
@@ -79,11 +82,11 @@ function StaggerReveal({ children, delayIndex, active, reduceMotion, className =
 
 function ProgramCard({ card }) {
   return (
-    <article className="relative mx-auto w-full max-w-[390px] self-end overflow-visible pb-6">
+    <article className="relative max-h-fit mx-auto w-full max-w-[390px] self-end overflow-visible pb-6">
       <div
-        className={`pointer-events-none relative z-30 mx-auto flex min-h-[min(200px,52vw)] shrink-0 justify-center sm:min-h-[min(240px,48vw)] lg:min-h-[300px] ${card.figureLiftClass}`}
+        className={`pointer-events-none relative z-30 mx-auto flex min-h-[min(160px,42vw)] shrink-0 justify-center sm:min-h-[min(200px,40vw)] lg:min-h-[220px] ${card.figureLiftClass}`}
       >
-        <div className={`relative shrink-0 -left-16 top-16 sm:-left-16 sm:top-16 lg:-left-16 lg:top-16 ${card.figureMaxClass}`}>
+        <div className={`relative shrink-0 -left-16 top-16 sm:top-20 lg:top-[4.25rem] ${card.figureMaxClass}`}>
           <Image
             src={card.figureSrc}
             alt=""
@@ -159,7 +162,7 @@ export default function YourPath() {
   return (
     <section
       ref={sectionRef}
-      className={`relative h-fit min-h-0 overflow-x-clip bg-[#010516] px-6 py-10 sm:py-12 lg:px-12 lg:py-14 xl:px-[115px] ${interTight.className}`}
+      className={`relative h-fit min-h-0 overflow-x-clip bg-[#010516] px-6 py-10 sm:py-12 lg:px-12 lg:py-24 xl:px-[115px] ${interTight.className}`}
     >
       <div
         className="pointer-events-none absolute left-1/2 top-[4%] h-[min(882px,130vw)] w-[min(1246px,220vw)] max-w-none -translate-x-1/2 opacity-80 sm:left-[calc(50%+min(18vw,200px))] lg:top-[5%]"
@@ -186,7 +189,7 @@ export default function YourPath() {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1236px] flex-col items-center gap-8 sm:gap-10 lg:gap-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1236px] flex-col items-center gap-8 sm:gap-10 lg:gap-0">
         <header className="w-full text-center">
           <h2 className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-[12px]">
             <StaggerReveal
@@ -220,7 +223,7 @@ export default function YourPath() {
         </header>
 
         <div className="grid w-full max-w-[1236px] grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-x-10 xl:gap-x-[74px]">
-          <div className="relative mx-auto w-full max-w-[393px] justify-self-center lg:justify-self-start">
+          <div className="relative mx-auto w-full max-w-[493px] justify-self-center lg:justify-self-start">
             <Image
               src="/your-path/hero-left.png"
               alt="Students at different levels on a podium"
@@ -252,19 +255,22 @@ export default function YourPath() {
           </StaggerReveal>
         </div>
 
-        <div className="flex w-full max-w-[1236px] flex-wrap items-end content-end justify-center gap-8 md:gap-6 lg:gap-[26px]">
+        <div className="-mt-6 flex w-full max-w-[1236px] flex-wrap items-end content-end justify-center gap-8 sm:-mt-8 md:gap-6 lg:-mt-14 lg:gap-[26px]">
           {PROGRAM_CARDS.map((card) => (
             <ProgramCard key={card.id} card={card} />
           ))}
         </div>
 
         <div className="flex w-full justify-center pt-2 sm:pt-4">
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center rounded-[33554400px] bg-[#2a4dff] px-[21px] py-4 text-center text-[16px] font-medium leading-6 text-white shadow-[0_0_28px_rgba(42,77,255,0.45)] transition-[transform,box-shadow] hover:shadow-[0_0_36px_rgba(42,77,255,0.55)] active:scale-[0.99]"
+          <Button
+            asChild
+            className="hero-cta-btn focus-visible:ring-0 focus-visible:ring-offset-0"
           >
-            Explore Programs
-          </Link>
+            <Link href="/register">
+              Explore Programs
+              <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

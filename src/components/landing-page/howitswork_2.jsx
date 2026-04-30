@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Inter_Tight } from 'next/font/google';
-
 const CARD_STAGGER_S = 0.41;
 const CARD_DURATION_S = 0.62;
 const EASE_IN = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -19,7 +18,7 @@ const CARD_HOVER = '/how-it-works-2/step-card-1.svg';
 const STEPS = [
   {
     id: '01',
-    stepLabel: 'Step 01',
+    stepLabel: '/how-it-works-2/step-num-01.png',
     labelMedium: true,
     title: 'Show up to every lesson.',
     tabSrc: '/how-it-works-2/tab-arrow-1.svg',
@@ -28,7 +27,7 @@ const STEPS = [
   },
   {
     id: '02',
-    stepLabel: 'Step 02',
+    stepLabel: '/how-it-works-2/step-num-02.png',
     labelMedium: false,
     title: 'Complete every assignment',
     tabSrc: '/how-it-works-2/tab-arrow-2.svg',
@@ -37,7 +36,7 @@ const STEPS = [
   },
   {
     id: '03',
-    stepLabel: 'Step 03',
+    stepLabel: '/how-it-works-2/step-num-03.png',
     labelMedium: false,
     title: (
       <>
@@ -94,16 +93,10 @@ function StepCard({
           className={`pointer-events-none absolute z-[1] object-contain ${tabClassName}`}
         />
         <div className="absolute left-[8.5%] top-[29.5%] z-[1] w-[89%]">
-          <p
-            className={`text-xs uppercase leading-4 tracking-[0.08em] text-white/50 sm:text-[12px] ${interTight.className} ${
-              labelMedium ? 'font-medium' : 'font-normal tracking-[0.1em]'
-            }`}
-          >
-            {stepLabel}
-          </p>
+          <img src={stepLabel} alt={stepLabel} width={100} height={100} />
         </div>
         <div className="absolute bottom-[10%] left-[8.5%] z-[1] w-[88%] pr-2">
-          <h3 className="font-['Norwester',sans-serif] text-[clamp(1.5rem,4.2vw,2.25rem)] leading-tight tracking-wide text-white sm:text-[36px] sm:leading-10">
+          <h3 className="font-['Norwester',sans-serif] uppercase text-[clamp(1.5rem,4.2vw,2.25rem)] leading-tight tracking-wide text-white sm:text-[36px] sm:leading-10">
             {title}
           </h3>
         </div>
@@ -163,8 +156,8 @@ export default function HowItWorks2() {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1280px] px-6 sm:px-8 lg:px-12 xl:px-[121px]">
-        <header className="mb-10 sm:mb-12 lg:mb-14">
-          <h2 className="font-['Norwester',sans-serif] text-[clamp(2rem,5vw,3rem)] uppercase leading-tight tracking-[0.72px] text-white sm:text-[48px] sm:leading-[68px]">
+        <header className="mb-6 sm:mb-8 lg:mb-10">
+          <h2 className="font-['Norwester',sans-serif] text-[clamp(2rem,5vw,3rem)] uppercase text-center leading-tight tracking-[0.72px] text-white sm:text-[48px] sm:leading-[68px]">
             <span>How It </span>
             <span className="text-[#2a4dff]">Works</span>
           </h2>
