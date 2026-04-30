@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,7 +25,8 @@ import {
 import { toast } from "sonner"
 
 const AssignmentManagement = () => {
-  const [activeTab, setActiveTab] = useState('list') // 'list', 'create', 'upload'
+  const [activeTab, setActiveTab] = useState('list') // 'list', 'create', 'upload', 'edit'
+  const [assignmentToEdit, setAssignmentToEdit] = useState(null)
   const [selectedAssignment, setSelectedAssignment] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const fileInputRef = useRef(null)
@@ -175,7 +176,10 @@ const AssignmentManagement = () => {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab('list')}
+            onClick={() => {
+              setAssignmentToEdit(null)
+              setActiveTab('list')
+            }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'list'
                 ? 'border-blue-500 text-blue-600'
@@ -184,8 +188,23 @@ const AssignmentManagement = () => {
           >
             Assignment List
           </button>
+          {assignmentToEdit && (
+            <button
+              onClick={() => setActiveTab('edit')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'edit'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Edit Assignment
+            </button>
+          )}
           <button
-            onClick={() => setActiveTab('create')}
+            onClick={() => {
+              setAssignmentToEdit(null)
+              setActiveTab('create')
+            }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'create'
                 ? 'border-blue-500 text-blue-600'
@@ -195,7 +214,10 @@ const AssignmentManagement = () => {
             Create Assignment
           </button>
           <button
-            onClick={() => setActiveTab('upload')}
+            onClick={() => {
+              setAssignmentToEdit(null)
+              setActiveTab('upload')
+            }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'upload'
                 ? 'border-blue-500 text-blue-600'
@@ -215,6 +237,10 @@ const AssignmentManagement = () => {
           onToggleStatus={toggleAssignmentMutation.mutate}
           onDelete={deleteAssignmentMutation.mutate}
           onView={setSelectedAssignment}
+          onEdit={(a) => {
+            setAssignmentToEdit(a)
+            setActiveTab('edit')
+          }}
           isToggling={toggleAssignmentMutation.isPending}
           isDeleting={deleteAssignmentMutation.isPending}
         />
@@ -222,6 +248,20 @@ const AssignmentManagement = () => {
 
       {activeTab === 'create' && (
         <CreateAssignment onSuccess={() => setActiveTab('list')} />
+      )}
+
+      {activeTab === 'edit' && assignmentToEdit && (
+        <EditAssignment
+          assignment={assignmentToEdit}
+          onSuccess={() => {
+            setAssignmentToEdit(null)
+            setActiveTab('list')
+          }}
+          onCancel={() => {
+            setAssignmentToEdit(null)
+            setActiveTab('list')
+          }}
+        />
       )}
 
       {activeTab === 'upload' && (
@@ -240,7 +280,7 @@ const AssignmentManagement = () => {
 }
 
 // Assignment List Component
-const AssignmentList = ({ assignments, isLoading, onToggleStatus, onDelete, onView, isToggling, isDeleting }) => {
+const AssignmentList = ({ assignments, isLoading, onToggleStatus, onDelete, onView, onEdit, isToggling, isDeleting }) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -317,6 +357,16 @@ const AssignmentList = ({ assignments, isLoading, onToggleStatus, onDelete, onVi
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(assignment)}
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        title="Edit assignment"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
                 
                       <Button
                   variant="outline"
@@ -346,23 +396,216 @@ const AssignmentList = ({ assignments, isLoading, onToggleStatus, onDelete, onVi
   )
 }
 
+const DEFAULT_QUESTION = () => ({
+  question: '',
+  instruction: '',
+  optionA: '',
+  optionB: '',
+  optionC: '',
+  optionD: '',
+  answer: 'A'
+})
+
+function assignmentToEditFormState(assignment) {
+  const rows = assignment?.questions?.length
+    ? assignment.questions.map((q) => ({
+        _id: q._id,
+        question: q.question || '',
+        instruction: q.instruction || '',
+        optionA: q.optionA || '',
+        optionB: q.optionB || '',
+        optionC: q.optionC || '',
+        optionD: q.optionD || '',
+        answer: q.answer && ['A', 'B', 'C', 'D'].includes(q.answer) ? q.answer : 'A'
+      }))
+    : [DEFAULT_QUESTION()]
+  return {
+    title: assignment?.title || '',
+    description: assignment?.description || '',
+    timeLimit: assignment?.timeLimit ?? 60,
+    questions: rows
+  }
+}
+
+/** Shared fields for create / edit assignment forms */
+function AssignmentFormFields({ formData, setFormData }) {
+  const addQuestion = () => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: [...prev.questions, DEFAULT_QUESTION()]
+    }))
+  }
+
+  const removeQuestion = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateQuestion = (index, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => (i === index ? { ...q, [field]: value } : q))
+    }))
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">Assignment Title *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+            placeholder="Enter assignment title"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="timeLimit">Time Limit (minutes)</Label>
+          <Input
+            id="timeLimit"
+            type="number"
+            min="1"
+            value={formData.timeLimit}
+            onChange={(e) => setFormData((prev) => ({ ...prev, timeLimit: parseInt(e.target.value, 10) || 60 }))}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+          placeholder="Enter assignment description (optional)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20"
+        />
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Label className="text-lg font-medium">Questions</Label>
+          <Button type="button" onClick={addQuestion} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Question
+          </Button>
+        </div>
+
+        {formData.questions.map((question, index) => (
+          <Card key={question._id || `q-${index}`} className="border-2 border-gray-200">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Question {index + 1}</h4>
+                {formData.questions.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeQuestion(index)}
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Question *</Label>
+                <textarea
+                  value={question.question}
+                  onChange={(e) => updateQuestion(index, 'question', e.target.value)}
+                  placeholder="Enter the question"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Instruction (optional)</Label>
+                <Input
+                  value={question.instruction}
+                  onChange={(e) => updateQuestion(index, 'instruction', e.target.value)}
+                  placeholder="Additional instructions for this question"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Option A *</Label>
+                  <Input
+                    value={question.optionA}
+                    onChange={(e) => updateQuestion(index, 'optionA', e.target.value)}
+                    placeholder="Option A"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Option B *</Label>
+                  <Input
+                    value={question.optionB}
+                    onChange={(e) => updateQuestion(index, 'optionB', e.target.value)}
+                    placeholder="Option B"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Option C *</Label>
+                  <Input
+                    value={question.optionC}
+                    onChange={(e) => updateQuestion(index, 'optionC', e.target.value)}
+                    placeholder="Option C"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Option D *</Label>
+                  <Input
+                    value={question.optionD}
+                    onChange={(e) => updateQuestion(index, 'optionD', e.target.value)}
+                    placeholder="Option D"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Correct Answer *</Label>
+                <select
+                  value={question.answer}
+                  onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                </select>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
+  )
+}
+
 // Create Assignment Component
 const CreateAssignment = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     timeLimit: 60,
-    questions: [
-      {
-        question: '',
-        instruction: '',
-        optionA: '',
-        optionB: '',
-        optionC: '',
-        optionD: '',
-        answer: 'A'
-      }
-    ]
+    questions: [DEFAULT_QUESTION()]
   })
 
   const queryClient = useQueryClient()
@@ -416,37 +659,6 @@ const CreateAssignment = ({ onSuccess }) => {
     })
   }
 
-  const addQuestion = () => {
-    setFormData(prev => ({
-      ...prev,
-      questions: [...prev.questions, {
-        question: '',
-        instruction: '',
-        optionA: '',
-        optionB: '',
-        optionC: '',
-        optionD: '',
-        answer: 'A'
-      }]
-    }))
-  }
-
-  const removeQuestion = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      questions: prev.questions.filter((_, i) => i !== index)
-    }))
-  }
-
-  const updateQuestion = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      questions: prev.questions.map((q, i) => 
-        i === index ? { ...q, [field]: value } : q
-      )
-    }))
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -454,151 +666,7 @@ const CreateAssignment = ({ onSuccess }) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-              <Label htmlFor="title">Assignment Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter assignment title"
-                    required
-                  />
-                </div>
-            
-                <div className="space-y-2">
-                  <Label htmlFor="timeLimit">Time Limit (minutes)</Label>
-                  <Input
-                    id="timeLimit"
-                    type="number"
-                    min="1"
-                    value={formData.timeLimit}
-                onChange={(e) => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) || 60 }))}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <textarea
-                  id="description"
-                  value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter assignment description (optional)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20"
-                />
-              </div>
-
-              {/* Questions */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label className="text-lg font-medium">Questions</Label>
-                  <Button type="button" onClick={addQuestion} size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Question
-                  </Button>
-                </div>
-                
-                {formData.questions.map((question, index) => (
-              <Card key={index} className="border-2 border-gray-200">
-                <CardHeader className="pb-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium">Question {index + 1}</h4>
-                        {formData.questions.length > 1 && (
-                          <Button
-                            type="button"
-                        variant="outline"
-                            size="sm"
-                            onClick={() => removeQuestion(index)}
-                        className="text-red-600 border-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Question *</Label>
-                        <textarea
-                          value={question.question}
-                      onChange={(e) => updateQuestion(index, 'question', e.target.value)}
-                          placeholder="Enter the question"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Instruction (optional)</Label>
-                        <Input
-                          value={question.instruction}
-                      onChange={(e) => updateQuestion(index, 'instruction', e.target.value)}
-                      placeholder="Additional instructions for this question"
-                        />
-                      </div>
-                      
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Option A *</Label>
-                          <Input
-                            value={question.optionA}
-                        onChange={(e) => updateQuestion(index, 'optionA', e.target.value)}
-                            placeholder="Option A"
-                            required
-                          />
-                        </div>
-                    
-                        <div className="space-y-2">
-                          <Label>Option B *</Label>
-                          <Input
-                            value={question.optionB}
-                        onChange={(e) => updateQuestion(index, 'optionB', e.target.value)}
-                            placeholder="Option B"
-                            required
-                          />
-                        </div>
-                    
-                        <div className="space-y-2">
-                          <Label>Option C *</Label>
-                          <Input
-                            value={question.optionC}
-                        onChange={(e) => updateQuestion(index, 'optionC', e.target.value)}
-                            placeholder="Option C"
-                            required
-                          />
-                        </div>
-                    
-                        <div className="space-y-2">
-                          <Label>Option D *</Label>
-                          <Input
-                            value={question.optionD}
-                        onChange={(e) => updateQuestion(index, 'optionD', e.target.value)}
-                            placeholder="Option D"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                        <div className="space-y-2">
-                          <Label>Correct Answer *</Label>
-                          <select
-                            value={question.answer}
-                      onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required
-                          >
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                          </select>
-                        </div>
-                </CardContent>
-                  </Card>
-                ))}
-              </div>
+          <AssignmentFormFields formData={formData} setFormData={setFormData} />
 
           <div className="flex justify-end space-x-2">
                 <Button
@@ -617,6 +685,108 @@ const CreateAssignment = ({ onSuccess }) => {
                 </Button>
               </div>
             </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Edit Assignment (admin)
+const EditAssignment = ({ assignment, onSuccess, onCancel }) => {
+  const [formData, setFormData] = useState(() => assignmentToEditFormState(assignment))
+
+  useEffect(() => {
+    setFormData(assignmentToEditFormState(assignment))
+  }, [assignment._id])
+
+  const queryClient = useQueryClient()
+
+  const updateAssignmentMutation = useMutation({
+    mutationFn: async (data) => {
+      const response = await fetch(`/api/assignments/${assignment._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to update assignment')
+      }
+      return response.json()
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Assignment updated')
+      queryClient.invalidateQueries({ queryKey: ['assignments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-assignments-results'] })
+      onSuccess()
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!formData.title.trim()) {
+      toast.error('Title is required')
+      return
+    }
+    const validQuestions = formData.questions.filter(
+      (q) => q.question.trim() && q.optionA.trim() && q.optionB.trim() && q.optionC.trim() && q.optionD.trim()
+    )
+    if (validQuestions.length === 0) {
+      toast.error('At least one complete question is required')
+      return
+    }
+    const payload = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      timeLimit: formData.timeLimit,
+      questions: validQuestions.map((q) => ({
+        ...(q._id ? { _id: q._id } : {}),
+        question: q.question.trim(),
+        instruction: (q.instruction || '').trim(),
+        optionA: q.optionA.trim(),
+        optionB: q.optionB.trim(),
+        optionC: q.optionC.trim(),
+        optionD: q.optionD.trim(),
+        answer: q.answer
+      }))
+    }
+    updateAssignmentMutation.mutate(payload)
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>Edit Assignment</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+        <p className="text-sm text-gray-600">
+          Changes apply immediately for new attempts. Existing student submissions keep their original answers.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <AssignmentFormFields formData={formData} setFormData={setFormData} />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Discard
+            </Button>
+            <Button type="submit" disabled={updateAssignmentMutation.isPending} className="bg-blue-600 hover:bg-blue-700">
+              {updateAssignmentMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block align-middle" />
+                  Saving…
+                </>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
+          </div>
+        </form>
       </CardContent>
     </Card>
   )

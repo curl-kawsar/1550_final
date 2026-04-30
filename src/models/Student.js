@@ -172,25 +172,27 @@ const StudentSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: async function(value) {
-        // Allow any string during initial migration
         if (!value) return false;
-        
+
+        const legacyDiagnosticTestValues = [
+          'Saturday September 27th 8:30am - noon PST',
+          'Sunday September 28th 8:30am - noon PST',
+          'I can\'t make either of these dates (reply below with if neither option works for you)',
+          'I can\'t make any of these dates'
+        ];
+        if (legacyDiagnosticTestValues.includes(value)) {
+          return true;
+        }
+
         try {
           const DiagnosticTest = mongoose.model('DiagnosticTest');
-          const test = await DiagnosticTest.findOne({ 
-            name: value, 
-            isActive: true 
+          const test = await DiagnosticTest.findOne({
+            name: value,
+            isActive: true
           });
           return !!test;
         } catch (error) {
-          // During initial setup, allow the hardcoded values
-          const legacyValues = [
-            'Saturday September 27th 8:30am - noon PST',
-            'Sunday September 28th 8:30am - noon PST',
-            'I can\'t make either of these dates (reply below with if neither option works for you)',
-            'I can\'t make any of these dates'
-          ];
-          return legacyValues.includes(value);
+          return legacyDiagnosticTestValues.includes(value);
         }
       },
       message: 'Invalid diagnostic test selection'
