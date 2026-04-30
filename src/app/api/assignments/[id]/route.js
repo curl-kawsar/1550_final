@@ -1,10 +1,25 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import mongoose from 'mongoose';
 import connectToDatabase from '@/lib/mongodb';
 import Assignment from '@/models/Assignment';
 import AssignmentSubmission from '@/models/AssignmentSubmission';
-import Admin from '@/models/Admin';
 import jwt from 'jsonwebtoken';
+
+function sanitizeQuestionForUpdate(q) {
+  const question = (q.question || '').trim();
+  const instruction = (q.instruction || '').trim();
+  const optionA = (q.optionA || '').trim();
+  const optionB = (q.optionB || '').trim();
+  const optionC = (q.optionC || '').trim();
+  const optionD = (q.optionD || '').trim();
+  const answer = q.answer;
+  const out = { question, instruction, optionA, optionB, optionC, optionD, answer };
+  if (q._id && mongoose.Types.ObjectId.isValid(String(q._id))) {
+    out._id = q._id;
+  }
+  return out;
+}
 
 // Get single assignment
 export async function GET(request, { params }) {
@@ -130,17 +145,55 @@ export async function PUT(request, { params }) {
     }
     
     const body = await request.json();
-    
-    const assignment = await Assignment.findByIdAndUpdate(
-      id,
-      { ...body, updatedAt: Date.now() },
-      { new: true, runValidators: true }
-    ).populate('createdBy', 'firstName lastName email');
-    
+    const { title, description, timeLimit, questions } = body;
+
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one question is required' },
+        { status: 400 }
+      );
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.question?.trim() || !q.optionA?.trim() || !q.optionB?.trim() || !q.optionC?.trim() || !q.optionD?.trim() || !q.answer) {
+        return NextResponse.json(
+          { error: `Question ${i + 1} is missing required fields` },
+          { status: 400 }
+        );
+      }
+      if (!['A', 'B', 'C', 'D'].includes(q.answer)) {
+        return NextResponse.json(
+          { error: `Question ${i + 1} has invalid answer. Must be A, B, C, or D` },
+          { status: 400 }
+        );
+      }
+    }
+
+    const sanitizedQuestions = questions.map(sanitizeQuestionForUpdate);
+
+    const assignment = await Assignment.findById(id);
     if (!assignment) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
-    
+
+    assignment.title = title.trim();
+    assignment.description = typeof description === 'string' ? description.trim() : '';
+    const parsedLimit = parseInt(timeLimit, 10);
+    if (Number.isFinite(parsedLimit) && parsedLimit >= 1) {
+      assignment.timeLimit = parsedLimit;
+    }
+    assignment.questions = sanitizedQuestions;
+    assignment.totalQuestions = sanitizedQuestions.length;
+    assignment.updatedAt = new Date();
+    await assignment.save();
+
+    await assignment.populate('createdBy', 'firstName lastName email');
+
     return NextResponse.json({
       message: 'Assignment updated successfully',
       assignment: assignment.toObject()
