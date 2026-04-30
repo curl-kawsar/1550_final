@@ -53,8 +53,9 @@ const Footer = () => {
   };
 
   const fieldClass =
-    'rounded-lg border-white/12 bg-[#050b1a]/90 text-white placeholder:text-white/38 ' +
-    'focus-visible:border-[#457BF5] focus-visible:ring-1 focus-visible:ring-[#457BF5]/80 ' +
+    'rounded-lg border border-[#1c3568] bg-[#050b1a]/90 text-white placeholder:text-white/38 ' +
+    'outline-none ring-offset-0 focus-visible:border-[#457BF5] ' +
+    'focus-visible:ring-1 focus-visible:ring-[#457BF5]/80 focus-visible:ring-offset-0 ' +
     'shadow-none';
 
   return (
@@ -70,7 +71,7 @@ const Footer = () => {
 
       <div className="relative z-10 w-full px-4 py-16 sm:px-6 lg:px-10 xl:px-14 2xl:px-16 lg:py-20">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10 xl:gap-14">
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             <Link href="/" className="inline-flex items-center gap-3">
               <img src="/logo.png" alt="1550+ Logo" className="h-11 w-auto" />
             </Link>
@@ -104,7 +105,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-2">
             <p className={sectionLabel}>Connect</p>
             <p className="mt-5 text-sm text-white/55">
               Follow College Mastermind for tips and updates.
@@ -131,8 +132,8 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-3">
-            <div className="rounded-2xl border border-white/[0.08] bg-[#071028]/70 p-6 shadow-[0_24px_80px_-28px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7">
+          <div className="lg:col-span-5">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#071028]/70 p-6 shadow-[0_24px_80px_-28px_rgba(0,0,0,0.65)] backdrop-blur-md sm:p-7 lg:p-8">
               <p className={sectionLabel}>Get in touch</p>
               <p className="mt-4 text-sm text-white/60">
                 You can reach us anytime. We typically reply within one business
