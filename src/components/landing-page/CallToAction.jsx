@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Inter_Tight } from 'next/font/google';
@@ -103,57 +104,90 @@ const CallToAction = () => {
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1236px] flex-col items-center px-6 sm:px-10 lg:px-16 xl:px-[115px]">
-        <div className="flex w-full max-w-[52rem] flex-col items-center gap-6 rounded-2xl border border-white/[0.08] bg-[#060b1a]/75 px-6 py-10 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:gap-8 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
-          <header className="flex flex-col items-center gap-5 text-center">
-            <h2 className="flex flex-wrap items-baseline justify-center gap-x-[0.35em] gap-y-2">
+        <div className="relative flex w-full flex-col items-center">
+          <div
+            className="pointer-events-none absolute bottom-[8%] left-0 z-0 hidden h-[min(260px,38vw)] w-[min(160px,26vw)] -translate-x-[8%] sm:block lg:bottom-[12%] lg:h-[min(300px,34vw)] lg:w-[min(200px,22vw)] lg:-translate-x-[18%]"
+            aria-hidden
+          >
+            <div className="cta-card-deco cta-card-deco--float relative h-full w-full">
+              <Image
+                src="/call-to-action/decoration-1.png"
+                alt=""
+                fill
+                sizes="200px"
+                className="object-contain object-bottom"
+                draggable={false}
+              />
+            </div>
+          </div>
+          <div
+            className="pointer-events-none absolute bottom-[8%] right-0 z-0 hidden h-[min(260px,38vw)] w-[min(160px,26vw)] translate-x-[8%] sm:block lg:bottom-[12%] lg:h-[min(300px,34vw)] lg:w-[min(200px,22vw)] lg:translate-x-[18%]"
+            aria-hidden
+          >
+            <div className="cta-card-deco cta-card-deco--float-delayed relative h-full w-full">
+              <Image
+                src="/call-to-action/decoration-2.png"
+                alt=""
+                fill
+                sizes="200px"
+                className="object-contain object-bottom"
+                draggable={false}
+              />
+            </div>
+          </div>
+
+          <div className="relative z-10 flex w-full max-w-[52rem] flex-col items-center gap-6 rounded-2xl border border-white/[0.08] bg-[#060b1a]/75 px-6 py-10 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:gap-8 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+            <header className="flex flex-col items-center gap-5 text-center">
+              <h2 className="flex flex-wrap items-baseline justify-center gap-x-[0.35em] gap-y-2">
+                <StaggerReveal
+                  delayIndex={0}
+                  active={active}
+                  reduceMotion={reduceMotion}
+                  className="shrink-0"
+                >
+                  <span className={`${headlineCls} text-white`}>
+                    Claim your spot at the
+                  </span>
+                </StaggerReveal>
+                <StaggerReveal
+                  delayIndex={1}
+                  active={active}
+                  reduceMotion={reduceMotion}
+                  className="shrink-0"
+                >
+                  <span className={`${headlineCls} text-[#2a4dff]`}>top</span>
+                </StaggerReveal>
+              </h2>
+
               <StaggerReveal
-                delayIndex={0}
+                delayIndex={2}
                 active={active}
                 reduceMotion={reduceMotion}
-                className="shrink-0"
+                className="max-w-xl"
               >
-                <span className={`${headlineCls} text-white`}>
-                  Claim your spot at the
-                </span>
+                <p className="text-pretty text-[clamp(1rem,2.6vw,1.375rem)] font-light leading-relaxed text-white/[0.82] lg:text-[22px] lg:leading-snug">
+                  The path to success starts with the first step.
+                </p>
               </StaggerReveal>
-              <StaggerReveal
-                delayIndex={1}
-                active={active}
-                reduceMotion={reduceMotion}
-                className="shrink-0"
-              >
-                <span className={`${headlineCls} text-[#2a4dff]`}>top</span>
-              </StaggerReveal>
-            </h2>
+            </header>
 
             <StaggerReveal
-              delayIndex={2}
+              delayIndex={3}
               active={active}
               reduceMotion={reduceMotion}
-              className="max-w-xl"
+              className="flex justify-center"
             >
-              <p className="text-pretty text-[clamp(1rem,2.6vw,1.375rem)] font-light leading-relaxed text-white/[0.82] lg:text-[22px] lg:leading-snug">
-                The path to success starts with the first step.
-              </p>
+              <Button
+                asChild
+                className="hero-cta-btn mt-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              >
+                <Link href="/register">
+                  Join Today
+                  <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
+                </Link>
+              </Button>
             </StaggerReveal>
-          </header>
-
-          <StaggerReveal
-            delayIndex={3}
-            active={active}
-            reduceMotion={reduceMotion}
-            className="flex justify-center"
-          >
-            <Button
-              asChild
-              className="hero-cta-btn mt-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            >
-              <Link href="/register">
-                Join Today
-                <ArrowUpRight className="hero-cta-icon" size={18} aria-hidden />
-              </Link>
-            </Button>
-          </StaggerReveal>
+          </div>
         </div>
       </div>
     </section>

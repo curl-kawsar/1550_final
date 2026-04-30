@@ -25,7 +25,7 @@ const PROGRAM_CARDS = [
     title: 'Foundations',
     description:
       'Targeted skill rebuilding to strengthen core math or reading skills',
-    figureSrc: '/your-path/card-foundations-figure.png',
+    figureSrc: '/your-path/small.png',
     figureWidth: 210,
     figureHeight: 269,
     figureMaxClass:
@@ -37,7 +37,7 @@ const PROGRAM_CARDS = [
     title: 'Intensive Prep',
     description:
       'Intensive group classes or one-on-one tutoring to reach 1400+',
-    figureSrc: '/your-path/card-intensive-figure.png',
+    figureSrc: '/your-path/mid.png',
     figureWidth: 239,
     figureHeight: 289,
     figureMaxClass:
@@ -49,7 +49,7 @@ const PROGRAM_CARDS = [
     title: 'The Last 100 Program',
     description:
       'Specialized training for 1450+ scorers, ready to go for the top 1%',
-    figureSrc: '/your-path/card-last100-figure.png',
+    figureSrc: '/your-path/big.png',
     figureWidth: 250,
     figureHeight: 319,
     figureMaxClass:

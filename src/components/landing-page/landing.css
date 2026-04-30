@@ -2,7 +2,7 @@
 .hero-image {
   --hero-nav-overlap: clamp(5.5rem, 12vw, 6.25rem);
 
-  background: #020a2b;
+  background: #010723;
   color: #fff;
   min-height: 100vh;
   width: 100%;
@@ -23,7 +23,7 @@
   height: 100%;
   /* Cover removes letterboxing / white bands from asset + fills edge-to-edge */
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
   z-index: 1;
 }
 
@@ -247,6 +247,11 @@
     padding-bottom: 1.75rem;
   }
 
+  .hero-content {
+    text-align: center;
+    margin-inline: auto;
+  }
+
   .hero-title {
     font-size: clamp(2.4rem, 13vw, 3.8rem);
     line-height: 0.98;
@@ -268,5 +273,32 @@ li {
 @media only screen and (min-width: 1440px) {
   .hero-content {
     width: 45rem;
+  }
+}
+
+/* CallToAction — side decorations (black backdrop in assets knocks out on dark strip) */
+@keyframes cta-deco-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.cta-card-deco {
+  pointer-events: none;
+  mix-blend-mode: lighten;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cta-card-deco--float {
+    animation: cta-deco-float 5.5s ease-in-out infinite;
+  }
+
+  .cta-card-deco--float-delayed {
+    animation: cta-deco-float 5.5s ease-in-out infinite;
+    animation-delay: -2.75s;
   }
 }
